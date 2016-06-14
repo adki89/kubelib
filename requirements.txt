@@ -1,0 +1,4 @@
+sh
+PyYaml
+pytest
+sphinx
