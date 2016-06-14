@@ -108,8 +108,8 @@ class Kubectl(object):
                 self.kubectl.delete(
                     resource_type,
                     resource_name, 
-                    '--context={}'.format(context),
-                    '--namespace={}'.format(namespace)
+                    '--context={}'.format(self.context),
+                    '--namespace={}'.format(self.namespace)
                 )
             except sh.ErrorReturnCode as err:
                 logging.error("Unexpected response: %r", err)
