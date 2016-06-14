@@ -18,5 +18,10 @@ setup(
     author_email='jkane@safaribooksonline.com',
     url='https://safaribooks.com',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    install_requires=[
+        'bunch',
+        'PyYaml',
+        'sh',
+    ]
 )
