@@ -11,6 +11,10 @@ class BasicTestSuite(unittest.TestCase):
     def test_does_it_import(self):
         assert True
 
+    def test_getnamespaces(self):
+    	kube = kubelib.Kubectl(context='sfo-context', namespace='jenkins-iat-kube', dryrun=True)
+    	kube.get_namespaces()
+
 
 if __name__ == '__main__':
     unittest.main()

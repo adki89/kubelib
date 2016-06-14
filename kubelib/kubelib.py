@@ -1,6 +1,10 @@
 import glob
 import sh
 import yaml
+import bunch
+
+import logging
+logger = logging.getLogger(__name__)
 
 # Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 # strings that Kubernetes wants in .yaml file 'Kind' fields.
@@ -11,23 +15,38 @@ TYPE_TO_KIND = {
 
 class Kubectl(object):
 
-    def __init__(self, context):
+    def __init__(self, context, namespace=None, dryrun=False):
         self.context = context
+        self.namespace = namespace
+        self.dryrun = dryrun
+
+        if dryrun:
+            self.kubectl = sh.echo
+        else:
+            self.kubectl = sh.kubectl
+
+    def get_namespaces(self):
+        self.namespaces = {}
+        namespaces_base = yaml.load(self.kubectl.get.namespaces('-o', 'yaml').stdout)
+        try:
+            for ns in namespaces_base['items']:
+                self.namespaces[ns['metadata']['name']] = bunch.bunchify(ns)
+        except TypeError:
+            return []
+        return self.namespaces
 
     def create_namespace(self, namespace):
         """Create the given namespace."""
-       
         self.namespace = namespace
-
         try:
-            sh.kubectl.create.namespace(namespace)
+            self.kubectl.create.namespace(namespace)
             return True
         except sh.ErrorReturnCode:
             return False        
 
     def create_path(self, path_or_fn):
         """Simple kubectl create wrapper"""
-        sh.kubectl.create(
+        self.kubectl.create(
             '-f', path_or_fn,
             '--namespace={}'.format(self.namespace),
             '--context={}'.format(self.context)
@@ -36,7 +55,7 @@ class Kubectl(object):
     def delete_path(self, path_or_fn):
         """Simple kubectl delete wrapper"""
         try:
-            sh.kubectl.delete(
+            self.kubectl.delete(
                 '-f', path_or_fn,
                 '--namespace={}'.format(self.namespace),
                 '--context={}'.format(self.context)
@@ -48,7 +67,7 @@ class Kubectl(object):
     def create_if_missing(self, resource_type, path):
         """Make sure expected resources exist."""
         all_resources = yaml.load(
-            sh.kubectl.get(
+            self.kubectl.get(
                 resource_type,
                 '--namespace={}'.format(self.namespace),
                 '--context={}'.format(self.context),
@@ -69,29 +88,29 @@ class Kubectl(object):
             if resource['kind'] == TYPE_TO_KIND[resource_type]:
 
                 if resource['metadata']['name'] not in getattr(self, resource_type):
-                    print('Creating {}'.format(resource_fn))
+                    logger.info('Creating {}'.format(resource_fn))
                     self.create_path(resource_fn)
                     # placeholder
                     getattr(self, resource_type)[resource['metadata']['name']] = True
 
-    def destroy_by_type(self, resource_type):
+    def delete_by_type(self, resource_type):
         """loop through and destroy all resources of the given type."""
-        for resource in yaml.load(sh.kubectl.get(
+        for resource in yaml.load(self.kubectl.get(
             resource_type,
             '--context={}'.format(self.context),
             '--namespace={}'.format(self.namespace),
             '-o', 'yaml'
         ).stdout)['items']:
             resource_name = resource['metadata']['name']
-            print('kubectl delete {} {}'.format(resource_type, resource_name))
+            logging.info('kubectl delete %s %s', resource_type, resource_name)
             
             try:
-                sh.kubectl.delete(
+                self.kubectl.delete(
                     resource_type,
                     resource_name, 
                     '--context={}'.format(context),
                     '--namespace={}'.format(namespace)
                 )
             except sh.ErrorReturnCode as err:
-                print("Unexpected response: %r" % err)
+                logging.error("Unexpected response: %r", err)
         
