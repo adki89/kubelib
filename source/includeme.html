@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>&lt;no title&gt; &mdash; Kubelib 1.0.0 documentation</title>
+    <title>kubelib &mdash; Kubelib 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -40,17 +40,41 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <p># kubelib
-Python library to simplify kubernetes scripting</p>
-<p>&#8212;
-Initial package setup borrowed from <cite>https://github.com/kennethreitz/samplemod</cite></p>
+  <div class="section" id="kubelib">
+<h1>kubelib<a class="headerlink" href="#kubelib" title="Permalink to this headline">¶</a></h1>
+<p>Python library to simplify kubernetes scripting</p>
+<p><a class="reference external" href="http://public.safarilab.com/kubelib/">Full Documentation Here</a></p>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>List all namespaces:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">kubelib</span>
+
+<span class="n">kube</span> <span class="o">=</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">Kubectl</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="s1">&#39;sfo-context&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">kube</span><span class="o">.</span><span class="n">get_namespaces</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Initial package setup borrowed from <cite>https://github.com/kennethreitz/samplemod</cite></p>
+<p>A reasonable approach to getting sphinx output into github pages from <cite>https://daler.github.io/sphinxdoc-test/includeme.html</cite></p>
+</div>
+</div>
 
 
           </div>
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">kubelib</a><ul>
+<li><a class="reference internal" href="#quickstart">Quickstart</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
@@ -81,7 +105,7 @@ Initial package setup borrowed from <cite>https://github.com/kennethreitz/sample
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, Jason Kane.
+      &copy;2016, O'Reilly.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>

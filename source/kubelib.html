@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="Kubelib 1.0.0 documentation" href="../index.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="includeme.html" />
+    <link rel="prev" title="kubelib" href="includeme.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -44,40 +44,122 @@
 <dl class="class">
 <dt id="kubelib.Kubectl">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Kubectl</code><span class="sig-paren">(</span><em>context</em>, <em>namespace=None</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Wrapper around the kubectl command line utility.</p>
+<p>Create new Kubectl object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params context:</th><td class="field-body">Kubernetes context for this object</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Params namespace:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Kubernetes namespace, this is required (sorry)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Params dryrun:</th><td class="field-body">When truthy don&#8217;t actually send anything to kubectl</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
 <dt id="kubelib.Kubectl.create_if_missing">
 <code class="descname">create_if_missing</code><span class="sig-paren">(</span><em>resource_type</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.create_if_missing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make sure expected resources exist.</p>
+<dd><p>Make sure all resources of the given <em>resource_type</em> described 
+by the yaml file(s) at the given <em>path</em> location exist.  Create them
+if they don&#8217;t.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resource_type</strong> &#8211; simple resource type (service, pod, rc, etc..)</li>
+<li><strong>path</strong> &#8211; location of resource files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Kubectl.create_namespace">
 <code class="descname">create_namespace</code><span class="sig-paren">(</span><em>namespace</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.create_namespace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the given namespace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>namespace</strong> &#8211; name of the namespace we want to create</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Kubectl.create_path">
 <code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.create_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple kubectl create wrapper</p>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Kubectl.delete_by_type">
 <code class="descname">delete_by_type</code><span class="sig-paren">(</span><em>resource_type</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.delete_by_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>loop through and destroy all resources of the given type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resource_type</strong> &#8211; simple resource type (service, pod, rc, etc..)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Kubectl.delete_path">
 <code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.delete_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple kubectl delete wrapper</p>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Kubectl.get_namespaces">
 <code class="descname">get_namespaces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.get_namespaces" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return list of namespace objects.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Kubectl.context">
+<code class="descname">context</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kubernetes context</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Kubectl.dryrun">
+<code class="descname">dryrun</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.dryrun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating if we don&#8217;t want to actually send
+anything to kubectl</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Kubectl.namespace">
+<code class="descname">namespace</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kubernetes namespace</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -92,7 +174,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="includeme.html" title="previous chapter">&lt;no title&gt;</a></li>
+      <li>Previous: <a href="includeme.html" title="previous chapter">kubelib</a></li>
   </ul></li>
 </ul>
 </div>
@@ -118,7 +200,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, Jason Kane.
+      &copy;2016, O'Reilly.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>

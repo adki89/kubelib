@@ -2,6 +2,6 @@ Kubelib
 *******
 
 .. automodule:: kubelib
-   :members:
-   :undoc-members:
-   :imported-members:
+
+	.. autoclass:: kubelib.Kubectl
+		:member-order: groupwise
