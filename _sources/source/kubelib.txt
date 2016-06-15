@@ -1,4 +1,4 @@
 Kubelib
 *******
 
-..automodule:: kubelib
+.. automodule:: kubelib
