@@ -8,7 +8,7 @@ Python library to simplify kubernetes scripting
 Quickstart
 ----------
 
-.. code: python
+List all namespaces::
 	
 	import kubelib
 
