@@ -1,7 +1,10 @@
-# kubelib
+kubelib
+=======
+
 Python library to simplify kubernetes scripting
 
-.. _Documentation http://public.safarilab.com/kubelib/
+`Documentation <http://public.safarilab.com/kubelib/>`_
 
----
+------
+
 Initial package setup borrowed from `https://github.com/kennethreitz/samplemod`
