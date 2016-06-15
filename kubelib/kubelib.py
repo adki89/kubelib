@@ -26,11 +26,11 @@ class Kubectl(object):
             self.kubectl = sh.kubectl
 
     def get_namespaces(self):
-        self.namespaces = {}
+        self.namespaces = []
         namespaces_base = yaml.load(self.kubectl.get.namespaces('-o', 'yaml').stdout)
         try:
             for ns in namespaces_base['items']:
-                self.namespaces[ns['metadata']['name']] = bunch.bunchify(ns)
+                self.namespaces.append(bunch.bunchify(ns))
         except TypeError:
             return []
         return self.namespaces
