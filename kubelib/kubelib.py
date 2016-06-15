@@ -15,7 +15,7 @@ TYPE_TO_KIND = {
 }
 
 
-class TimeOut(exception):
+class TimeOut(Exception):
     """maximum timeout exceeded"""
 
 
@@ -71,6 +71,7 @@ class Kubectl(object):
         Returns the full unique pod name
 
         :param pod_name: Pod name (without unique suffix)
+        :param max_delay: Maximum number of seconds to wait
         :returns: Unique pod name
         :raises TimeOut: When max_delay is exceeded 
         """
