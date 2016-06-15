@@ -6,18 +6,31 @@ import bunch
 import logging
 logger = logging.getLogger(__name__)
 
-# Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
-# strings that Kubernetes wants in .yaml file 'Kind' fields.
+#: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
+#: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
     'pvc': 'PersistentVolumeClaim',
     'services': "Service",
 }
 
 class Kubectl(object):
+    """Wrapper around the kubectl command line utility."""
 
     def __init__(self, context, namespace=None, dryrun=False):
+        """Create new Kubectl object.
+
+        :params context: Kubernetes context for this object
+        :params namespace: Kubernetes namespace, this is required (sorry)
+        :params dryrun: When truthy don't actually send anything to kubectl
+        """
+        #: Kubernetes context
         self.context = context
+
+        #: Kubernetes namespace
         self.namespace = namespace
+
+        #: Boolean indicating if we don't want to actually send
+        #: anything to kubectl
         self.dryrun = dryrun
 
         if dryrun:
@@ -26,6 +39,7 @@ class Kubectl(object):
             self.kubectl = sh.kubectl
 
     def get_namespaces(self):
+        """Return list of namespace objects."""
         self.namespaces = []
         namespaces_base = yaml.load(self.kubectl.get.namespaces('-o', 'yaml').stdout)
         try:
@@ -36,7 +50,10 @@ class Kubectl(object):
         return self.namespaces
 
     def create_namespace(self, namespace):
-        """Create the given namespace."""
+        """Create the given namespace.
+
+        :param namespace: name of the namespace we want to create
+        """
         self.namespace = namespace
         try:
             self.kubectl.create.namespace(namespace)
@@ -45,7 +62,10 @@ class Kubectl(object):
             return False        
 
     def create_path(self, path_or_fn):
-        """Simple kubectl create wrapper"""
+        """Simple kubectl create wrapper.
+
+        :param path_or_fn: Path or filename of yaml resource descriptions
+        """
         self.kubectl.create(
             '-f', path_or_fn,
             '--namespace={}'.format(self.namespace),
@@ -53,7 +73,10 @@ class Kubectl(object):
         )
 
     def delete_path(self, path_or_fn):
-        """Simple kubectl delete wrapper"""
+        """Simple kubectl delete wrapper.
+
+        :param path_or_fn: Path or filename of yaml resource descriptions
+        """
         try:
             self.kubectl.delete(
                 '-f', path_or_fn,
@@ -65,7 +88,13 @@ class Kubectl(object):
         return True
 
     def create_if_missing(self, resource_type, path):
-        """Make sure expected resources exist."""
+        """Make sure all resources of the given *resource_type* described 
+        by the yaml file(s) at the given *path* location exist.  Create them
+        if they don't.
+
+        :param resource_type: simple resource type (service, pod, rc, etc..)
+        :param path: location of resource files
+        """
         all_resources = yaml.load(
             self.kubectl.get(
                 resource_type,
@@ -94,7 +123,10 @@ class Kubectl(object):
                     getattr(self, resource_type)[resource['metadata']['name']] = True
 
     def delete_by_type(self, resource_type):
-        """loop through and destroy all resources of the given type."""
+        """loop through and destroy all resources of the given type.
+
+        :param resource_type: simple resource type (service, pod, rc, etc..)
+        """
         for resource in yaml.load(self.kubectl.get(
             resource_type,
             '--context={}'.format(self.context),

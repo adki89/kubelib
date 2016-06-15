@@ -34,6 +34,15 @@ extensions = [
     'sphinx.ext.githubpages',
 ]
 
+autodoc_default_flags = [
+	'members', 
+	'undoc-members', 
+	'private-members', 
+	'inherited-members', 
+	'show-inheritance'
+]
+autoclass_content = "both"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -52,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Kubelib'
-copyright = u'2016, Jason Kane'
+copyright = u'2016, O\'Reilly'
 author = u'Jason Kane'
 
 # The version info for the project you're documenting, acts as replacement for
