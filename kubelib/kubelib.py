@@ -14,6 +14,11 @@ TYPE_TO_KIND = {
     'services': "Service",
 }
 
+
+class TimeOut(exception):
+    """maximum timeout exceeded"""
+
+
 class Kubectl(object):
     """Wrapper around the kubectl command line utility."""
 
@@ -67,6 +72,7 @@ class Kubectl(object):
 
         :param pod_name: Pod name (without unique suffix)
         :returns: Unique pod name
+        :raises TimeOut: When max_delay is exceeded 
         """
         start = time.time()
 
