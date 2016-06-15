@@ -43,7 +43,7 @@
 <span id="kubelib"></span><h1>Kubelib<a class="headerlink" href="#module-kubelib" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="kubelib.Kubectl">
-<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Kubectl</code><span class="sig-paren">(</span><em>context</em>, <em>namespace=None</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Kubectl</code><span class="sig-paren">(</span><em>context=None</em>, <em>namespace=None</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Wrapper around the kubectl command line utility.</p>
 <p>Create new Kubectl object.</p>
@@ -54,12 +54,41 @@
 <tr class="field-odd field"><th class="field-name">Params context:</th><td class="field-body">Kubernetes context for this object</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Params namespace:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Kubernetes namespace, this is required (sorry)</td>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Kubernetes namespace, defaults to the current default</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Params dryrun:</th><td class="field-body">When truthy don&#8217;t actually send anything to kubectl</td>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="kubelib.Kubectl.clean_volumes">
+<code class="descname">clean_volumes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.clean_volumes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete and rebuild any persistent volume in a released 
+or failed state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.copy_to_pod">
+<code class="descname">copy_to_pod</code><span class="sig-paren">(</span><em>source_fn</em>, <em>pod</em>, <em>destination_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.copy_to_pod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy a file into the given pod.</p>
+<p>This can be handy for dropping files into a pod for testing.</p>
+<p>You need to have passwordless ssh access to the node and 
+be a member of the docker group there.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source_fn</strong> &#8211; path and filename you want to copy</li>
+<li><strong>container</strong> &#8211; pod name you want to copy the file into</li>
+<li><strong>destination_fn</strong> &#8211; path and filename to place it (path must exist)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="kubelib.Kubectl.create_if_missing">
 <code class="descname">create_if_missing</code><span class="sig-paren">(</span><em>resource_type</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.create_if_missing" title="Permalink to this definition">¶</a></dt>
@@ -89,6 +118,8 @@ if they don&#8217;t.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>namespace</strong> &#8211; name of the namespace we want to create</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the create succeeded, False otherwise (it already exists)</td>
 </tr>
 </tbody>
 </table>
@@ -142,10 +173,42 @@ if they don&#8217;t.</p>
 <dd><p>Return list of namespace objects.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="kubelib.Kubectl.context">
-<code class="descname">context</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.context" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kubernetes context</p>
+<dl class="method">
+<dt id="kubelib.Kubectl.get_pod">
+<code class="descname">get_pod</code><span class="sig-paren">(</span><em>pod_name_unique</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.get_pod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an object describing the given pod</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pod_name_unique</strong> &#8211; Full name of the pod</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Object of pod attributes</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.get_resource">
+<code class="descname">get_resource</code><span class="sig-paren">(</span><em>resource_type</em>, <em>single=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.get_resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.wait_for_pod">
+<code class="descname">wait_for_pod</code><span class="sig-paren">(</span><em>pod_name</em>, <em>max_delay=300</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.wait_for_pod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block until the given pod is running.</p>
+<p>Returns the full unique pod name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pod_name</strong> &#8211; Pod name (without unique suffix)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Unique pod name</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -153,12 +216,6 @@ if they don&#8217;t.</p>
 <code class="descname">dryrun</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.dryrun" title="Permalink to this definition">¶</a></dt>
 <dd><p>Boolean indicating if we don&#8217;t want to actually send
 anything to kubectl</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="kubelib.Kubectl.namespace">
-<code class="descname">namespace</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Kubectl.namespace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kubernetes namespace</p>
 </dd></dl>
 
 </dd></dl>
