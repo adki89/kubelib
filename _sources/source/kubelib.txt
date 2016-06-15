@@ -2,3 +2,4 @@ Kubelib
 *******
 
 .. automodule:: kubelib
+   :members:
