@@ -12,7 +12,7 @@ class BasicTestSuite(unittest.TestCase):
         assert True
 
     def test_getnamespaces(self):
-    	kube = kubelib.Kubectl(context='sfo-context', namespace='jenkins-iat-kube', dryrun=True)
+    	kube = kubelib.Kubectl(context='my-context', namespace='my-namespace', dryrun=True)
     	kube.get_namespaces()
 
 
