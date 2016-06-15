@@ -11,7 +11,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   includeme
+   source/includeme
+   source/kubelib
 
 
 Indices and tables
