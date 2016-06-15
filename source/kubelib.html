@@ -41,6 +41,46 @@
             
   <div class="section" id="module-kubelib">
 <span id="kubelib"></span><h1>Kubelib<a class="headerlink" href="#module-kubelib" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="kubelib.Kubectl">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Kubectl</code><span class="sig-paren">(</span><em>context</em>, <em>namespace=None</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="kubelib.Kubectl.create_if_missing">
+<code class="descname">create_if_missing</code><span class="sig-paren">(</span><em>resource_type</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.create_if_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.create_if_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure expected resources exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.create_namespace">
+<code class="descname">create_namespace</code><span class="sig-paren">(</span><em>namespace</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.create_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.create_namespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the given namespace.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.create_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.delete_by_type">
+<code class="descname">delete_by_type</code><span class="sig-paren">(</span><em>resource_type</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.delete_by_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.delete_by_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>loop through and destroy all resources of the given type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.delete_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Kubectl.get_namespaces">
+<code class="descname">get_namespaces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kubelib/kubelib.html#Kubectl.get_namespaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kubelib.Kubectl.get_namespaces" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 
