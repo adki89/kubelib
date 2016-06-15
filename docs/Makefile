@@ -228,3 +228,6 @@ dummy:
 	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy
 	@echo
 	@echo "Build finished. Dummy builder generates no files."
+
+docs: html latexpdf
+	cd $(BUILDDIR)/html; git add .; git commit -m "rebuilt docs"; git push origin gh-pages
