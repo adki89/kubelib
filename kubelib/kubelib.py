@@ -2,6 +2,7 @@ import glob
 import sh
 import yaml
 import bunch
+import time
 
 import logging
 logger = logging.getLogger(__name__)
@@ -16,17 +17,28 @@ TYPE_TO_KIND = {
 class Kubectl(object):
     """Wrapper around the kubectl command line utility."""
 
-    def __init__(self, context, namespace=None, dryrun=False):
+    def __init__(self, context=None, namespace=None, dryrun=False):
         """Create new Kubectl object.
 
         :params context: Kubernetes context for this object
-        :params namespace: Kubernetes namespace, this is required (sorry)
+        :params namespace: Kubernetes namespace, defaults to the current default
         :params dryrun: When truthy don't actually send anything to kubectl
         """
         #: Kubernetes context
+        if context is None:
+            # default to the current context
+            context = sh.kubectl.config('current-context').stdout.strip()
+
         self.context = context
 
         #: Kubernetes namespace
+        if namespace is None:
+            # default to the current kubectl namespace
+            config = json.loads(sh.kubectl.config.view("-o", "json").stdout)
+            for c in config['contexts']:
+                if c['name'] == context:
+                    namespace = c['context'].get('namespace')
+
         self.namespace = namespace
 
         #: Boolean indicating if we don't want to actually send
@@ -37,6 +49,49 @@ class Kubectl(object):
             self.kubectl = sh.echo
         else:
             self.kubectl = sh.kubectl
+
+    # pods
+
+    def get_pod(self, pod_name_unique):
+        """Return an object describing the given pod
+
+        :param pod_name_unique: Full name of the pod
+        :returns: Object of pod attributes
+        """
+        return self.get_resource('pod', pod_name_unique)
+
+    def wait_for_pod(self, pod_name, max_delay=300):
+        """Block until the given pod is running.
+
+        Returns the full unique pod name
+
+        :param pod_name: Pod name (without unique suffix)
+        :returns: Unique pod name
+        """
+        start = time.time()
+
+        while 1:
+            pods = self.get_resource('pod')
+            for pod in pods:
+                if pod.metadata.generateName == pod_name + '-':
+                    if pod.status.phase == "Running":
+                        return pod.metadata.name
+                    else:
+                        log.info(
+                            "Container %s found but status is %s", 
+                            pod.metadata.name, 
+                            pod.status.phase
+                        )
+
+            # ok, we got through the list of all pods without finding
+            # an acceptable running pod.  So we pause (briefly) and try again.
+
+            if time.time() - start > max_delay:
+                raise TimeOut('Maximum delay {} exceeded'.format(max_delay))
+            else:
+                time.sleep(2)
+
+    # namespaces
 
     def get_namespaces(self):
         """Return list of namespace objects."""
@@ -53,6 +108,7 @@ class Kubectl(object):
         """Create the given namespace.
 
         :param namespace: name of the namespace we want to create
+        :returns: True if the create succeeded, False otherwise (it already exists)
         """
         self.namespace = namespace
         try:
@@ -60,6 +116,33 @@ class Kubectl(object):
             return True
         except sh.ErrorReturnCode:
             return False        
+
+    # generic 
+
+    def get_resource(self, resource_type, single=None):
+        if single is None:
+            resource_list = []
+            resources = yaml.loads(sh.kubectl.get(
+                resource_type,
+                '--namespace', self.namespace,
+                '--context', self.context,
+                single,
+                '--output', 'yaml'
+            ).stdout)
+            for resource in resources:
+                resource_list.append(bunch.bunchify(resource))
+            return resource_list
+
+        else:
+            resource = yaml.loads(sh.kubectl.get(
+                resource_type,
+                '--namespace', self.namespace,
+                '--context', self.context,
+                single,
+                '--output', 'yaml'
+            ).stdout)
+
+            return bunch.bunchify(resource)      
 
     def create_path(self, path_or_fn):
         """Simple kubectl create wrapper.
@@ -146,3 +229,48 @@ class Kubectl(object):
             except sh.ErrorReturnCode as err:
                 logging.error("Unexpected response: %r", err)
         
+
+    # black magic
+
+    def copy_to_pod(self, source_fn, pod, destination_fn):
+        """Copy a file into the given pod.
+
+        This can be handy for dropping files into a pod for testing.  
+
+        You need to have passwordless ssh access to the node and 
+        be a member of the docker group there.
+
+        :param source_fn: path and filename you want to copy
+        :param container: pod name you want to copy the file into
+        :param destination_fn: path and filename to place it (path must exist)
+        """
+        pod_obj = self.get_pod(pod)
+        tempfn = "temp.fn"
+        node_name = pod_obj.spec.nodeName
+
+        sh.scp(source_fn, "{node_name}:{tempfn}".format(
+            node_name=node_name,
+            tempfn=tempfn
+        ))
+
+        containerID = pod.status["containerStatuses"][0]["containerID"][9:21]
+
+        command = "docker cp {origin} {container}:{destination}".format(
+            origin=tempfn,
+            container=containerID,
+            destination=destination_fn
+        )
+
+        sh.ssh(node, command)
+
+    # volumes
+
+    def clean_volumes(self):
+        """Delete and rebuild any persistent volume in a released 
+        or failed state.
+        """
+        for pv in self.get_resource('pv'):
+            if pv.status['phase'] in ['Released', 'Failed']:
+                logger.info('Rebuilding PV %s', pv.metadata['name'])
+                sh.kubectl.delete.pv(pv.metadata['name'], context=self.context)
+                sh.kubectl.create(context=self.context, _in=yaml.dumps(pv))
