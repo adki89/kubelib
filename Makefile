@@ -1,6 +1,9 @@
 init:
 	pip install -r requirements.txt
 
+coverage:
+	py.test --cov=kubelib tests
+
 test:
 	py.test -s tests
 

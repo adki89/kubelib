@@ -1,5 +1,7 @@
-sh
-PyYaml
-pytest
-sphinx
 bunch
+coverage
+pytest
+pytest-cov
+PyYaml
+sh
+sphinx

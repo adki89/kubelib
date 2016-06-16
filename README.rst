@@ -1,7 +1,7 @@
 kubelib
 =======
 
-Python library to simplify kubernetes scripting
+Python library to simplify kubernetes scripting.  Minimal test coverage.
 
 `Full Documentation Here <http://public.safarilab.com/kubelib/>`_
 

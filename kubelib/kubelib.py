@@ -29,21 +29,22 @@ class Kubectl(object):
         :params namespace: Kubernetes namespace, defaults to the current default
         :params dryrun: When truthy don't actually send anything to kubectl
         """
-        #: Kubernetes context
+        
         if context is None:
             # default to the current context
             context = sh.kubectl.config('current-context').stdout.strip()
-
+        #: Kubernetes context
         self.context = context
 
-        #: Kubernetes namespace
         if namespace is None:
             # default to the current kubectl namespace
-            config = json.loads(sh.kubectl.config.view("-o", "json").stdout)
-            for c in config['contexts']:
-                if c['name'] == context:
-                    namespace = c['context'].get('namespace')
-
+            config = bunch.Bunch.fromYAML(
+                sh.kubectl.config.view("-o", "yaml").stdout
+            )
+            for c in config.contexts:
+                if c.name == context:
+                    namespace = c.context.namespace
+        #: Kubernetes namespace
         self.namespace = namespace
 
         #: Boolean indicating if we don't want to actually send
@@ -101,15 +102,14 @@ class Kubectl(object):
     # namespaces
 
     def get_namespaces(self):
-        """Return list of namespace objects."""
-        self.namespaces = []
-        namespaces_base = yaml.load(self.kubectl.get.namespaces('-o', 'yaml').stdout)
-        try:
-            for ns in namespaces_base['items']:
-                self.namespaces.append(bunch.bunchify(ns))
-        except TypeError:
-            return []
-        return self.namespaces
+        """Retrieve namespace objects from kubernetes.
+
+        :returns: List of namespace objects
+        """
+        namespaces_base = bunch.Bunch.fromYAML(
+            str(self.kubectl.get.namespaces('-o', 'yaml'))
+        )
+        return namespaces_base["items"]
 
     def create_namespace(self, namespace):
         """Create the given namespace.
@@ -122,34 +122,38 @@ class Kubectl(object):
             self.kubectl.create.namespace(namespace)
             return True
         except sh.ErrorReturnCode:
-            return False        
+            return False
 
     # generic 
 
     def get_resource(self, resource_type, single=None):
+        """Retrieve one or more resource objects.  To get one
+        object you need to provide the object name.
+
+        :param resource_type: simple resource type (service, pod, rc, etc..)
+        :param single: particular resource we want [default: None]
+        :returns: One resource object or a list of resource objects
+        """
         if single is None:
-            resource_list = []
-            resources = yaml.loads(sh.kubectl.get(
+
+            resources = bunch.Bunch.fromYAML(self.kubectl.get(
                 resource_type,
                 '--namespace', self.namespace,
                 '--context', self.context,
                 single,
                 '--output', 'yaml'
             ).stdout)
-            for resource in resources:
-                resource_list.append(bunch.bunchify(resource))
-            return resource_list
+
+            return resources["items"]
 
         else:
-            resource = yaml.loads(sh.kubectl.get(
+            return bunch.Bunch.fromYAML(self.kubectl.get(
                 resource_type,
                 '--namespace', self.namespace,
                 '--context', self.context,
                 single,
                 '--output', 'yaml'
             ).stdout)
-
-            return bunch.bunchify(resource)      
 
     def create_path(self, path_or_fn):
         """Simple kubectl create wrapper.
@@ -185,19 +189,14 @@ class Kubectl(object):
         :param resource_type: simple resource type (service, pod, rc, etc..)
         :param path: location of resource files
         """
-        all_resources = yaml.load(
+        all_resources = bunch.Bunch.fromYAML(
             self.kubectl.get(
                 resource_type,
                 '--namespace={}'.format(self.namespace),
                 '--context={}'.format(self.context),
                 '-o', 'yaml'            
             ).stdout
-        )['items']
-
-        setattr(self, resource_type, {})
-        for resource in all_resources:
-            self_dict = getattr(self, resource_type)
-            self_dict[resource['metadata']['name']] = resource
+        )
 
         for resource_fn in glob.glob(path):
             with open(resource_fn) as h:
@@ -217,13 +216,13 @@ class Kubectl(object):
 
         :param resource_type: simple resource type (service, pod, rc, etc..)
         """
-        for resource in yaml.load(self.kubectl.get(
+        for resource in bunch.Bunch.fromYAML(self.kubectl.get(
             resource_type,
             '--context={}'.format(self.context),
             '--namespace={}'.format(self.namespace),
             '-o', 'yaml'
-        ).stdout)['items']:
-            resource_name = resource['metadata']['name']
+        ).stdout)["items"]:
+            resource_name = resource.metadata.name
             logging.info('kubectl delete %s %s', resource_type, resource_name)
             
             try:
@@ -277,7 +276,7 @@ class Kubectl(object):
         or failed state.
         """
         for pv in self.get_resource('pv'):
-            if pv.status['phase'] in ['Released', 'Failed']:
+            if pv.status.phase in ['Released', 'Failed']:
                 logger.info('Rebuilding PV %s', pv.metadata['name'])
-                sh.kubectl.delete.pv(pv.metadata['name'], context=self.context)
-                sh.kubectl.create(context=self.context, _in=yaml.dumps(pv))
+                self.kubectl.delete.pv(pv.metadata.name, context=self.context)
+                self.kubectl.create(context=self.context, _in=pv.toYAML())
