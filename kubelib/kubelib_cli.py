@@ -1,17 +1,11 @@
-import bunch
 import glob
-import json
-import os
-import requests
 import sh
-import time
 import yaml
+import bunch
+import time
 
 import logging
 logger = logging.getLogger(__name__)
-logging.info('Starting...')
-
-apiVersion = "v1"
 
 #: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
@@ -20,27 +14,13 @@ TYPE_TO_KIND = {
     'services': "Service",
 }
 
-# flexible in what we accept, strict in what we provide
-CANONICAL_TYPE = {
-    'ns': 'namespaces',
-    'pod': "pods",
-    'pv': 'persistentvolumes',
-    'pvc': 'persistentvolumeclaims',
-    'rc': 'replicationcontrollers',
-    'node': 'nodes'
-}
-
 
 class TimeOut(Exception):
     """maximum timeout exceeded"""
 
 
-class KubeError(Exception):
-    """Generic Kubernetes error wrapper"""
-
-
 class Kubectl(object):
-    """Wrapper around the kubernetes api."""
+    """Wrapper around the kubectl command line utility."""
 
     def __init__(self, context=None, namespace=None, dryrun=False):
         """Create new Kubectl object.
@@ -49,37 +29,21 @@ class Kubectl(object):
         :params namespace: Kubernetes namespace, defaults to the current default
         :params dryrun: When truthy don't actually send anything to kubectl
         """
-        with open(os.path.expanduser("~/.kube/config")) as h:
-            self.config = bunch.Bunch.fromYAML(
-                h.read()
-            )
-
+        
         if context is None:
             # default to the current context
-            context = self.config['current-context']
+            context = sh.kubectl.config('current-context').stdout.strip()
         #: Kubernetes context
         self.context = context
 
-        #if namespace is None:
-        # default to the current kubectl namespace
-        for c in self.config.contexts:
-            if c.name == context:
-                if namespace is None:
-                    namespace = c.context.get('namespace')
-
-                cluster_name = c.context.cluster
-                user_name = c.context.user
-
-        for cluster in self.config.clusters:
-            if cluster.name == cluster_name:
-                self.cluster = cluster.cluster
-                self.cluster.name = cluster_name
-
-        for user in self.config.users:
-            if user.name == user_name:
-                self.user = user.user
-                self.user.name = user_name
-
+        if namespace is None:
+            # default to the current kubectl namespace
+            config = bunch.Bunch.fromYAML(
+                sh.kubectl.config.view("-o", "yaml").stdout
+            )
+            for c in config.contexts:
+                if c.name == context:
+                    namespace = c.context.namespace
         #: Kubernetes namespace
         self.namespace = namespace
 
@@ -87,54 +51,11 @@ class Kubectl(object):
         #: anything to kubectl
         self.dryrun = dryrun
 
-        self.client = requests.Session()
-        self.ca = os.path.expanduser("~/.kube/{}".format(
-            self.cluster['certificate-authority']
-        ))
-
-        self.cert=(
-            os.path.expanduser("~/.kube/{}".format(
-                self.user["client-certificate"]
-            )),
-            os.path.expanduser("~/.kube/{}".format(
-                self.user["client-key"]
-            ))
-        )
-        
-        #self.base_resources = self._get_base_resources()
-
-    def _get(self, url, *args, **kwargs):
-        url = self.cluster.server + "/api/v1" + url
-        if self.dryrun:
-            print("GET %r (%r, %r)" % (url, args, kwargs))
-            return None
+        if dryrun:
+            self.kubectl = sh.echo
         else:
-            response = self.client.get(url, *args, cert=self.cert, verify=self.ca, **kwargs)
-            return response.json()
+            self.kubectl = sh.kubectl
 
-    def _post(self, url, data):
-        url = self.cluster.server + "/api/v1" + url
-        if self.dryrun:
-            print("POST %r (%r)" % (url, data))
-            return None
-        else:
-            response = self.client.post(url, json=data, cert=self.cert, verify=self.ca)
-            return response.json()
-
-    def _delete(self, url):
-        url = self.cluster.server + "/api/v1" + url
-        if self.dryrun:
-            print("DELETE %r" % url)
-            return None
-        else:
-            response = self.client.delete(url, cert=self.cert, verify=self.ca)
-            return response.json()        
-
-    def _get_base_resources(self):
-        base_resources = []
-        for resource in self._get("/")['resources']:
-            base_resources.append(resource['name'])
-        return base_resources
     # pods
 
     def get_pod(self, pod_name_unique):
@@ -185,46 +106,24 @@ class Kubectl(object):
 
         :returns: List of namespace objects
         """
-        return bunch.bunchify(self._get("/namespaces")['items'])
+        namespaces_base = bunch.Bunch.fromYAML(
+            str(self.kubectl.get.namespaces('-o', 'yaml'))
+        )
+        return namespaces_base["items"]
 
     def create_namespace(self, namespace):
         """Create the given namespace.
-
-        This almost makes the new namespace our new default for 
-        subsequent operations.
 
         :param namespace: name of the namespace we want to create
         :returns: True if the create succeeded, False otherwise (it already exists)
         """
         self.namespace = namespace
-
-        response = self._post(
-            "/namespaces", 
-            data={
-                "kind": "Namespace",
-                "apiVersion": apiVersion,
-                "metadata": {
-                    "name": namespace,
-                }
-            }
-        )
-        if response['status'] == "Failure":
-            raise KubeError(response)
-        
-    def delete_namespace(self, namespace):
-        """Delete the given namespace.
-
-        :param namespace: name of the namespace we want to delete
-        """
-        if self.namespace == namespace:
-            self.namespace = None
-
-        response = self._delete(
-            "/namespaces/{name}".format(
-                name=namespace
-            )
-        )
-        return response
+        try:
+            self.kubectl.create.namespace(namespace)
+            return True
+        except sh.ErrorReturnCode as err:
+            logging.error(err)
+            return False
 
     # generic 
 
@@ -237,23 +136,24 @@ class Kubectl(object):
         :returns: One resource object or a list of resource objects
         """
         if single is None:
-            resources = bunch.bunchify(
-                self._get('/namespaces/{namespace}/{resource_type}'.format(
-                    namespace=self.namespace,
-                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type)
-                ))
-            )
+
+            resources = bunch.Bunch.fromYAML(self.kubectl.get(
+                resource_type,
+                '--namespace', self.namespace,
+                '--context', self.context,
+                '--output', 'yaml'
+            ).stdout)
 
             return resources["items"]
 
         else:
-            result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
-                    namespace=self.namespace,
-                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
-                    name=single
-                ))
-
-            return bunch.bunchify(result)
+            return bunch.Bunch.fromYAML(self.kubectl.get(
+                resource_type,
+                '--namespace', self.namespace,
+                '--context', self.context,
+                single,
+                '--output', 'yaml'
+            ).stdout)
 
     def create_path(self, path_or_fn):
         """Simple kubectl create wrapper.
