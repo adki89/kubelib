@@ -102,6 +102,11 @@ class Kubectl(object):
             ))
         )
 
+        if self.dryrun:
+            self.kubectl = sh.echo
+        else:
+            self.kubectl = sh.kubectl
+
         #self.base_resources = self._get_base_resources()
 
     def _get(self, url, *args, **kwargs):
