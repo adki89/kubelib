@@ -4,6 +4,7 @@ import json
 import os
 import requests
 import sh
+import sys
 import time
 import yaml
 
@@ -100,7 +101,7 @@ class Kubectl(object):
                 self.user["client-key"]
             ))
         )
-        
+
         #self.base_resources = self._get_base_resources()
 
     def _get(self, url, *args, **kwargs):
@@ -128,7 +129,7 @@ class Kubectl(object):
             return None
         else:
             response = self.client.delete(url, cert=self.cert, verify=self.ca)
-            return response.json()        
+            return response.json()
 
     def _get_base_resources(self):
         base_resources = []
@@ -153,7 +154,7 @@ class Kubectl(object):
         :param pod_name: Pod name (without unique suffix)
         :param max_delay: Maximum number of seconds to wait
         :returns: Unique pod name
-        :raises TimeOut: When max_delay is exceeded 
+        :raises TimeOut: When max_delay is exceeded
         """
         start = time.time()
 
@@ -165,8 +166,8 @@ class Kubectl(object):
                         return pod.metadata.name
                     else:
                         log.info(
-                            "Container %s found but status is %s", 
-                            pod.metadata.name, 
+                            "Container %s found but status is %s",
+                            pod.metadata.name,
                             pod.status.phase
                         )
 
@@ -190,7 +191,7 @@ class Kubectl(object):
     def create_namespace(self, namespace):
         """Create the given namespace.
 
-        This almost makes the new namespace our new default for 
+        This almost makes the new namespace our new default for
         subsequent operations.
 
         :param namespace: name of the namespace we want to create
@@ -199,7 +200,7 @@ class Kubectl(object):
         self.namespace = namespace
 
         response = self._post(
-            "/namespaces", 
+            "/namespaces",
             data={
                 "kind": "Namespace",
                 "apiVersion": apiVersion,
@@ -210,7 +211,7 @@ class Kubectl(object):
         )
         if response['status'] == "Failure":
             raise KubeError(response)
-        
+
     def delete_namespace(self, namespace):
         """Delete the given namespace.
 
@@ -226,7 +227,7 @@ class Kubectl(object):
         )
         return response
 
-    # generic 
+    # generic
 
     def get_resource(self, resource_type, single=None):
         """Retrieve one or more resource objects.  To get one
@@ -282,7 +283,7 @@ class Kubectl(object):
         return True
 
     def create_if_missing(self, resource_type, path):
-        """Make sure all resources of the given *resource_type* described 
+        """Make sure all resources of the given *resource_type* described
         by the yaml file(s) at the given *path* location exist.  Create them
         if they don't.
 
@@ -294,14 +295,14 @@ class Kubectl(object):
                 resource_type,
                 '--namespace={}'.format(self.namespace),
                 '--context={}'.format(self.context),
-                '-o', 'yaml'            
+                '-o', 'yaml'
             ).stdout
         )
 
         for resource_fn in glob.glob(path):
             with open(resource_fn) as h:
                 resource = yaml.load(h)
-            # if TYPE_TO_KIND fails with keyerror you probably need to add a 
+            # if TYPE_TO_KIND fails with keyerror you probably need to add a
             # new entry to the dict above.
             if resource['kind'] == TYPE_TO_KIND[resource_type]:
 
@@ -324,26 +325,26 @@ class Kubectl(object):
         ).stdout)["items"]:
             resource_name = resource.metadata.name
             logging.info('kubectl delete %s %s', resource_type, resource_name)
-            
+
             try:
                 self.kubectl.delete(
                     resource_type,
-                    resource_name, 
+                    resource_name,
                     '--context={}'.format(self.context),
                     '--namespace={}'.format(self.namespace)
                 )
             except sh.ErrorReturnCode as err:
                 logging.error("Unexpected response: %r", err)
-        
+
 
     # black magic
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
         """Copy a file into the given pod.
 
-        This can be handy for dropping files into a pod for testing.  
+        This can be handy for dropping files into a pod for testing.
 
-        You need to have passwordless ssh access to the node and 
+        You need to have passwordless ssh access to the node and
         be a member of the docker group there.
 
         :param source_fn: path and filename you want to copy
@@ -372,7 +373,7 @@ class Kubectl(object):
     # volumes
 
     def clean_volumes(self):
-        """Delete and rebuild any persistent volume in a released 
+        """Delete and rebuild any persistent volume in a released
         or failed state.
         """
         for pv in self.get_resource('pv'):
@@ -380,3 +381,46 @@ class Kubectl(object):
                 logger.info('Rebuilding PV %s', pv.metadata['name'])
                 self.kubectl.delete.pv(pv.metadata.name, context=self.context)
                 self.kubectl.create(context=self.context, _in=pv.toYAML())
+
+
+def maybeint(maybe):
+    """
+    If it's an int, make it an int.  otherwise leave it as a string.
+
+    >>> maybeint("12")
+    12
+
+    >>> maybeint("cow")
+    'cow'
+    """
+    try:
+        maybe = int(maybe)
+    except ValueError:
+        pass
+    return maybe
+
+def reimage(filename, xpath, newvalue, save_to=None):
+    """
+    Replace the given location (xpath) in the yaml filename with the value
+    newvalue.
+
+    >>> reimage("./tests/reimage_test.yml", "alpha.beta.gamma.0.delta", "epsilon", "./tests/reimage_test_done.yml")
+    {'alpha': {'beta': {'gamma': [{'a': 'silly', 'c': 'are', 'b': 'tests', 'e': 'useful', 'd': 'often', 'f': 'working', 'delta': 'epsilon'}, {'a': 'dummy'}]}}, 'junk': {'this': {'is': [{'just': 'noise'}]}}}
+    """
+    with open(filename, 'r') as h:
+        yml = yaml.load(h.read())
+
+    sub_yml = yml
+    xplst = xpath.split('.')
+    for pcomp in xplst[:-1]:
+        pcomp = maybeint(pcomp)
+        sub_yml = sub_yml[pcomp]
+
+    sub_yml[xplst[-1]] = newvalue
+
+    if save_to is None:
+        save_to = filename
+
+    with open(save_to, 'w') as h:
+        h.write(yaml.dump(yml))
+    return yml

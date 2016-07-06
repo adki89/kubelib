@@ -4,45 +4,40 @@
 import unittest
 
 from context import kubelib
-from stub import kubectl
 from bunch import Bunch
+import sh
+import stub
 
 class BasicTestSuite(unittest.TestCase):
     """Basic test cases."""
+
+    def setUp(self):
+        self.kube = kubelib.Kubectl(context='my-context', namespace='my-namespace', dryrun=False)
+        self.kube.kubectl = stub.kubectl
 
     def test_does_it_import(self):
         assert True
 
     def test_getnamespaces(self):
-        kube = kubelib.Kubectl(context='my-context', namespace='my-namespace', dryrun=False)
+        ns = self.kube.get_namespaces()
+        self.assertEqual(ns, [])
 
-        # override kubectl to use our stub
-        kube.kubectl = kubectl
+    def test_createdestroy_namespaces(self):
+        ns = self.kube.get_namespaces()
+        self.assertEqual(ns, [])
 
-        ns = kube.get_namespaces()
-        self.assertEqual(
-            ns, [
-                Bunch(
-                    apiVersion='v1', 
-                    kind='Namespace', 
-                    metadata=Bunch(
-                        creationTimestamp='2016-03-10T02:20:28Z', 
-                        labels=Bunch(
-                            name='bi'
-                        ), 
-                        name='bi', 
-                        resourceVersion='123456', 
-                        selfLink='/api/v1/namespaces/bi', 
-                        uid='abcdefab-abcd-abcde-abcdefabcdef'), 
-                    spec=Bunch(
-                        finalizers=['kubernetes']
-                    ), 
-                    status=Bunch(
-                        phase='Active'
-                    )
-                )
-            ]
-        )
+        ns = self.kube.create_namespace("new_namespace")
+        assert ns, "Namespace was _not_ created"
+
+        ns = self.kube.get_namespaces()
+        self.assertEqual(ns, ['new_namespace'])
+
+    def test_resource(self):
+        pod = self.kube.get_resource('pod')
+        pods = self.kube.get_resource('pods')
+
+        self.assertEqual(pod, pods)
+
 
 if __name__ == '__main__' and __package__ is None:
     from os import sys, path
