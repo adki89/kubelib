@@ -245,7 +245,7 @@ class Kubectl(object):
                 ))
             )
 
-            return resources["items"]
+            return resources.get("items", [])
 
         else:
             result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
