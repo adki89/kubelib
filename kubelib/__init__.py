@@ -1,1 +1,4 @@
-from .kubelib import Kubectl
+from .kubelib import (
+    Kubectl,
+    reimage
+)
