@@ -102,6 +102,11 @@ class Kubectl(object):
             ))
         )
 
+        if self.dryrun:
+            self.kubectl = sh.echo
+        else:
+            self.kubectl = sh.kubectl
+
         #self.base_resources = self._get_base_resources()
 
     def _get(self, url, *args, **kwargs):
@@ -210,7 +215,12 @@ class Kubectl(object):
             }
         )
         if response['status'] == "Failure":
-            raise KubeError(response)
+            # I would rather raise.. but want to stay backward
+            # compatible for a little while.
+            # raise KubeError(response)
+            return False
+
+        return True            
 
     def delete_namespace(self, namespace):
         """Delete the given namespace.
@@ -290,27 +300,30 @@ class Kubectl(object):
         :param resource_type: simple resource type (service, pod, rc, etc..)
         :param path: location of resource files
         """
-        all_resources = bunch.Bunch.fromYAML(
-            self.kubectl.get(
-                resource_type,
-                '--namespace={}'.format(self.namespace),
-                '--context={}'.format(self.context),
-                '-o', 'yaml'
-            ).stdout
-        )
 
+        # thin resource cache to improve performance when there are many
+        # files with resources of this type (one kube api hit instead
+        # of one per file).
+        cache = {}
         for resource_fn in glob.glob(path):
             with open(resource_fn) as h:
                 resource = yaml.load(h)
+
             # if TYPE_TO_KIND fails with keyerror you probably need to add a
             # new entry to the dict above.
             if resource['kind'] == TYPE_TO_KIND[resource_type]:
+                if not resource_type in cache:
+                    cache[resource_type] = {}
+                    resource_list = self.get_resource(resource_type)
+                    for r in resource_list:
+                        cache[resource_type][r['metadata']['name']] = r
 
-                if resource['metadata']['name'] not in getattr(self, resource_type):
+                if resource['metadata']['name'] not in cache[resource_type]:
                     logger.info('Creating {}'.format(resource_fn))
                     self.create_path(resource_fn)
-                    # placeholder
-                    getattr(self, resource_type)[resource['metadata']['name']] = True
+                    # placeholder, on the off chance there are two yaml files
+                    # that both reference the same metadata.name??
+                    cache[resource_type][resource['metadata']['name']] = True
 
     def delete_by_type(self, resource_type):
         """loop through and destroy all resources of the given type.
