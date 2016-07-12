@@ -39,6 +39,8 @@ class TimeOut(Exception):
 class KubeError(Exception):
     """Generic Kubernetes error wrapper"""
 
+class ContextRequired(KubeError):
+    """Everything requires a context"""
 
 class KubeObj(object):
     # attributes that can only be set at object creation time
@@ -163,6 +165,7 @@ class Kubectl(object):
 
         #if namespace is None:
         # default to the current kubectl namespace
+        cluster_name = None
         for c in self.config.contexts:
             if c.name == context:
                 if namespace is None:
@@ -170,6 +173,9 @@ class Kubectl(object):
 
                 cluster_name = c.context.cluster
                 user_name = c.context.user
+
+        if cluster_name is None:
+            raise ContextRequired('No kubernetes context was provided')
 
         for cluster in self.config.clusters:
             if cluster.name == cluster_name:
@@ -270,7 +276,7 @@ class Kubectl(object):
                     if pod.status.phase == "Running":
                         return pod.metadata.name
                     else:
-                        log.info(
+                        logger.info(
                             "Container %s found but status is %s",
                             pod.metadata.name,
                             pod.status.phase
