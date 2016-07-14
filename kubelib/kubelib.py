@@ -39,8 +39,10 @@ class TimeOut(Exception):
 class KubeError(Exception):
     """Generic Kubernetes error wrapper"""
 
+
 class ContextRequired(KubeError):
     """Everything requires a context"""
+
 
 class KubeObj(object):
     # attributes that can only be set at object creation time

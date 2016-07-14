@@ -23,5 +23,11 @@ setup(
         'bunch',
         'PyYaml',
         'sh',
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'make_namespace=kubelib.cli:make_namespace',
+            'make_nodeport=kubelib.cli:make_nodeport',
+        ]
+    }
 )
