@@ -12,7 +12,7 @@ allowed_re = re.compile(r"^[-a-z0-9]$")
 passing_re = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 PREFIX = ""
-SUFFIX = "-kube"
+SUFFIX = ["-kube", "-master"]
 
 
 class InvalidBranch(Exception):
@@ -105,8 +105,10 @@ def _make_namespace(branch=None):
                 name += c
         branch = name
 
-    if branch.endswith(SUFFIX):
-        branch = branch[:-1 * len(SUFFIX)]
+    for suffix in SUFFIX:
+        if branch.endswith(suffix):
+            branch = branch[:-1 * len(suffix)]
+            break
 
     branch = fix_length(branch)
     return(branch)
