@@ -54,7 +54,7 @@ def fix_length(branch):
         return branch
 
 
-def make_namespace(branch=None):
+def _make_namespace(branch=None):
     """
     Take the branch name and return the docker namespace.
 
@@ -108,10 +108,15 @@ def make_namespace(branch=None):
     if branch.endswith(SUFFIX):
         branch = branch[:-1 * len(SUFFIX)]
 
-    return(fix_length(branch))
+    branch = fix_length(branch)
+    return(branch)
 
+def make_namespace(branch=None):
+    ns = _make_namespace(branch)
+    print(ns)
+    return(0)
 
-def make_nodeport(namespace=None):
+def _make_nodeport(namespace=None):
     """
     Take the namespace and hash to a port.
 
@@ -137,6 +142,10 @@ def make_nodeport(namespace=None):
 
     return port
 
+def make_nodeport(namespace=None):
+    np = _make_nodeport(namespace)
+    print(np)
+    return(0)
 
 if __name__ == "__main__":
     import doctest
