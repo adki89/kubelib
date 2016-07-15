@@ -507,12 +507,14 @@ class Kubectl(object):
         tempfn = "temp.fn"
         node_name = pod_obj.spec.nodeName
 
-        sh.scp(source_fn, "{node_name}:{tempfn}".format(
+        destination = "{node_name}:{tempfn}".format(
             node_name=node_name,
             tempfn=tempfn
-        ))
+        )
+        logger.info('scp %r %r' % (source_fn, destination))
+        sh.scp(source_fn, destination)
 
-        containerID = pod.status["containerStatuses"][0]["containerID"][9:21]
+        containerID = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
 
         command = "docker cp {origin} {container}:{destination}".format(
             origin=tempfn,
@@ -520,7 +522,7 @@ class Kubectl(object):
             destination=destination_fn
         )
 
-        sh.ssh(node, command)
+        sh.ssh(node_name, command)
 
     # volumes
 
