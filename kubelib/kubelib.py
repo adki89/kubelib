@@ -1,5 +1,5 @@
 import bunch
-import glob
+import glob2
 import json
 import os
 import requests
@@ -20,6 +20,11 @@ TYPE_TO_KIND = {
     'pvc': 'PersistentVolumeClaim',
     'services': "Service",
 }
+
+# inverse
+KIND_TO_TYPE = {}
+for kube_type in TYPE_TO_KIND:
+    KIND_TO_TYPE[TYPE_TO_KIND[kube_type]] = kube_type
 
 # flexible in what we accept, strict in what we provide
 CANONICAL_TYPE = {
@@ -42,106 +47,6 @@ class KubeError(Exception):
 
 class ContextRequired(KubeError):
     """Everything requires a context"""
-
-
-class KubeObj(object):
-    # attributes that can only be set at object creation time
-    create_attributes = []
-    # attributes that can be updated
-    update_attributes = []
-    # attributes set by the server that cannot be changed
-    readonly_attributes = []
-
-    def to_json(self):
-        out_json = {}
-
-        for attr in self.create_attributes + self.update_attributes + self.readonly_attributes:
-            if getattr(self, attr, None) is not None:
-                if hasattr(getattr(self, attr), 'to_json'):
-                    out_json[attr] = getattr(self, attr).to_json()
-                else:
-                    out_json[attr] = getattr(self, attr)
-
-        return json.dumps(out_json)
-
-    def __init__(self, **kwargs):
-        for arg in kwargs:
-            setattr(self, arg, kwargs[arg])
-
-class Pod(KubeObj):
-    create_attributes = ['kind', ]
-    update_attributes = ['apiVersion', 'metadata', 'spec', ]
-    readonly_attributes = ['status',]
-
-
-class ObjectMeta(KubeObj):
-    create_attributes = ['name', 'generateName', 'namespace', 'labels', 'annotations']
-    readonly_attributes = [
-        'selfLink', 'uid', 'resourceVersion', 'generation', 'creationTimestamp',
-        'deletionTimestamp', 'deletionGracePeriodSeconds'
-    ]
-
-    def __init__(self, name=None, generateName=None, namespace=None, labels=None, annotations=None):
-        self.name = name
-        self.generateName = generateName
-        self.namespace = namespace
-        self.labels = labels
-        self.annotations = annotations
-
-        # read only attributes
-        for attr in self.readonly_attributes:
-            setattr(self, attr, None)
-
-
-class PodSpec(KubeObj):
-    create_attributes = [
-        'volumes', 'containers', 'restartPolicy', 'terminationGracePeriodSeconds',
-        'activeDeadlineSeconds', 'dnsPolicy', 'nodeSelector', 'serviceAccountName',
-        'nodeName', 'hostNetwork', 'hostPID', 'hostIPC',
-        'securityContext', 'imagePullSecrets']
-
-    def __init__(self, containers, **kwargs):
-        self.containers = containers
-        for arg in kwargs:
-            setattr(self, arg, kwargs[arg])
-
-
-class PodStatus(KubeObj):
-    readonly_attributes = ['phase', 'conditions', 'message', 'reason', 'hostIP', 'podIP', 'startTime', 'containerStatuses']
-
-class Volume(KubeObj):
-    create_attributes = [
-        'name', 'hostPath', 'emptyDir', 'gcePersistentDisk', 'awsElasticBlockStore', 'gitRepo', 'secret',
-        'nfs', 'iscsi', 'glusterfs', 'persistentVolumeClaim', 'rbd', 'cinder', 'cephfs', 'flocker',
-        'downwardAPI', 'fc'
-    ]
-
-class Container(KubeObj):
-    create_attributes = [
-        'name', 'image', 'command', 'args', 'workingdir', 'ports', 'env', 'resources', 'volumeMounts',
-        'livenessProbe', 'readinessProbe', 'lifecycle', 'terminationMessagePath', 'imagePullPolicy',
-        'securityContext', 'stdin', 'stdinOnce', 'tty'
-    ]
-
-class PodSecurityContext(KubeObj):
-    create_attributes = [
-        'seLinuxOptions', 'runAsUser', 'runAsNonRoot', 'supplementalGroups', 'fsGroup'
-    ]
-
-class LocalObjectReference(KubeObj):
-    create_attributes = ['name',]
-
-class PodCondition(KubeObj):
-    create_attributes = ['type', 'status', 'lastProbeTime', 'lastTransitionTime', 'reason', 'message']
-
-class ContainerStatus(KubeObj):
-    create_attributes = ['name', 'state', 'lastState', 'ready', 'restartCount', 'image', 'imageID', 'containerID']
-
-class HostPathVolumeSource(KubeObj):
-    create_attributes = ['path', ]
-
-class EmptyDirVolumeSource(KubeObj):
-    create_attributes = ['medium', ]
 
 
 class Kubectl(object):
@@ -403,7 +308,53 @@ class Kubectl(object):
                 '--', *command
             )
 
+    def apply_path(self, path, recursive=False):
+        """Process all yaml files in the given path.
 
+        Each file is opened up and handled based on its "Kind" field.
+
+        Most things are deleted then created
+
+        Deployments are rolled out
+        """
+        if recursive:
+            path += "/**/*"
+        else:
+            path ++ "/*"
+
+        CACHE = {}
+
+        for resource_fn in glob2.glob(path):
+            with open(resource_fn) as h:
+                resource = yaml.load(h)
+
+            if resource['kind'] not in CACHE:
+                resource_list = self.get_resource(KIND_TO_TYPE(resource_type))
+                CACHE[resource['kind']] = {}
+                for r in resource_list:
+                    CACHE[resource['kind']][r["metadata"]["name"]] = r
+
+            if resource["metadata"]["name"] in CACHE[resource['kind']]:
+                # we want to upgrade an existing resource
+                if resource['kind'] == "Deployment":
+                    self.replace_path(resource_fn)
+                else:
+                    self.delete_path(resource_fn)
+                    self.create_path(resource_fn)
+            else:
+                # we have a new resource
+                self.create_path(resource_fn)
+
+    def replace_path(self, path_or_fn):
+        """Simple kubectl replace wrapper.
+
+        :param path_or_fn: Path or filename of yaml resource descriptions
+        """
+        self.kubectl.replace(
+            '-f', path_or_fn,
+            '--namespace={}'.format(self.namespace),
+            '--context={}'.format(self.context)
+        )
 
     def create_path(self, path_or_fn):
         """Simple kubectl create wrapper.
@@ -444,7 +395,7 @@ class Kubectl(object):
         # files with resources of this type (one kube api hit instead
         # of one per file).
         cache = {}
-        for resource_fn in glob.glob(path):
+        for resource_fn in glob2.glob(path):
             with open(resource_fn) as h:
                 resource = yaml.load(h)
 
