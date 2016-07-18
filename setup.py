@@ -24,6 +24,7 @@ setup(
         'bunch',
         'PyYaml',
         'sh',
+        'glob2',
     ],
     entry_points={
         'console_scripts': [
