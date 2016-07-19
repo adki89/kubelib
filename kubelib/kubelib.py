@@ -17,6 +17,7 @@ apiVersion = "v1"
 #: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
+    'deployment': 'Deployment',
     'pv': 'PersistentVolume',
     'pvc': 'PersistentVolumeClaim',
     'rc': 'ReplicationController',
@@ -55,6 +56,7 @@ class ContextRequired(KubeError):
 
 class Kubectl(object):
     """Wrapper around the kubernetes api."""
+    api_base = "/api/v1"
 
     def __init__(self, context=None, namespace=None, dryrun=False):
         """Create new Kubectl object.
@@ -127,7 +129,7 @@ class Kubectl(object):
         #self.base_resources = self._get_base_resources()
 
     def _get(self, url, *args, **kwargs):
-        url = self.cluster.server + "/api/v1" + url
+        url = self.cluster.server + self.api_base + url
         if self.dryrun:
             print("GET %r (%r, %r)" % (url, args, kwargs))
             return None
@@ -136,7 +138,7 @@ class Kubectl(object):
             return response.json()
 
     def _post(self, url, data):
-        url = self.cluster.server + "/api/v1" + url
+        url = self.cluster.server + self.api_base + url
         if self.dryrun:
             print("POST %r (%r)" % (url, data))
             return None
@@ -145,7 +147,7 @@ class Kubectl(object):
             return response.json()
 
     def _delete(self, url):
-        url = self.cluster.server + "/api/v1" + url
+        url = self.cluster.server + self.api_base + url
         if self.dryrun:
             print("DELETE %r" % url)
             return None
@@ -256,20 +258,6 @@ class Kubectl(object):
 
     # generic
 
-    def get_persistent_volume(self, single=None):
-        """Retrive one or more persistent volumes.
-
-        we can't use get_resources because pv are not namespaced
-        """
-
-        if single is None:
-            resources = bunch.bunchify(
-                self._get('/persistentvolumes')
-            )
-
-            return resources.get("items", [])
-
-
     def get_resource(self, resource_type, single=None):
         """Retrieve one or more resource objects.  To get one
         object you need to provide the object name.
@@ -278,24 +266,52 @@ class Kubectl(object):
         :param single: particular resource we want [default: None]
         :returns: One resource object or a list of resource objects
         """
-        if single is None:
-            resources = bunch.bunchify(
-                self._get('/namespaces/{namespace}/{resource_type}'.format(
-                    namespace=self.namespace,
-                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type)
-                ))
-            )
-
-            return resources.get("items", [])
-
+        if resource_type == "pv"
+            if single is None:
+                resources = bunch.bunchify(
+                    self._get('/persistentvolumes')
+                )
+                return resources.get("items", [])
+            else:
+                return bunch.bunchify(
+                    self._get('/persistentvolumes/{name}'.format(
+                        name=single
+                    ))
+                )
+        elif resource_type == "deployment":
+            old_api_base = self.api_base
+            self.api_base = "/apis/extensions/v1beta1"
+            if single is None:
+                resources = bunch.bunchify(
+                    self._get('/deployments')
+                ).get("items, []")
+            else:
+                resources = bunch.bunchify(
+                    self._get('/deployments/{name}'.format(
+                        name=single
+                    ))
+                )
+            self.api_base = old_api_base
+            return resources
         else:
-            result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
-                    namespace=self.namespace,
-                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
-                    name=single
-                ))
+            if single is None:
+                resources = bunch.bunchify(
+                    self._get('/namespaces/{namespace}/{resource_type}'.format(
+                        namespace=self.namespace,
+                        resource_type=CANONICAL_TYPE.get(resource_type, resource_type)
+                    ))
+                )
 
-            return bunch.bunchify(result)
+                return resources.get("items", [])
+
+            else:
+                result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
+                        namespace=self.namespace,
+                        resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
+                        name=single
+                    ))
+
+                return bunch.bunchify(result)
 
     # too hard to use
     # def create(self, object):
@@ -352,10 +368,8 @@ class Kubectl(object):
 
             if resource['kind'] not in CACHE:
                 logger.info('Reading %s from kubernetes...', KIND_TO_TYPE[resource['kind']])
-                if resource['kind'] == "PersistentVolume":
-                    resource_list = self.get_persistent_volume()
-                else:
-                    resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
+
+                resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
 
                 logger.info('Found %i %s', len(resource_list), KIND_TO_TYPE[resource['kind']])
                 CACHE[resource['kind']] = {}
