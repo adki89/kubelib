@@ -286,11 +286,14 @@ class Kubectl(object):
             self.api_base = "/apis/extensions/v1beta1"
             if single is None:
                 resources = bunch.bunchify(
-                    self._get('/deployments')
+                    self._get('/namespaces/{namespace}/deployments'.format(
+                        namespace=self.namespace
+                    ))
                 ).get("items, []")
             else:
                 resources = bunch.bunchify(
-                    self._get('/deployments/{name}'.format(
+                    self._get('/namespaces/{namespace}/deployments/{name}'.format(
+                        namespace=self.namespace,
                         name=single
                     ))
                 )
