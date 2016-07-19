@@ -1,18 +1,21 @@
-import bunch
-import glob2
-import json
+"""
+Library of Kubernetes flavored helpers and objects
+"""
+
+import logging
 import os
-import requests
-import sh
-import sys
 import time
 import yaml
 
-import logging
-logger = logging.getLogger(__name__)
+import bunch
+import glob2
+import requests
+import sh
+
+LOG = logging.getLogger(__name__)
 logging.info('Starting...')
 
-apiVersion = "v1"
+API_VERSION = "v1"
 
 #: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
@@ -65,9 +68,9 @@ class Kubectl(object):
         :params namespace: Kubernetes namespace, defaults to the current default
         :params dryrun: When truthy don't actually send anything to kubectl
         """
-        with open(os.path.expanduser("~/.kube/config")) as h:
+        with open(os.path.expanduser("~/.kube/config")) as handle:
             self.config = bunch.Bunch.fromYAML(
-                h.read()
+                handle.read()
             )
 
         if context is None:
@@ -79,13 +82,13 @@ class Kubectl(object):
         #if namespace is None:
         # default to the current kubectl namespace
         cluster_name = None
-        for c in self.config.contexts:
-            if c.name == context:
+        for context_obj in self.config.contexts:
+            if context_obj.name == context:
                 if namespace is None:
-                    namespace = c.context.get('namespace')
+                    namespace = context_obj.context.get('namespace')
 
-                cluster_name = c.context.cluster
-                user_name = c.context.user
+                cluster_name = context_obj.context.cluster
+                user_name = context_obj.context.user
 
         if cluster_name is None:
             raise ContextRequired('No kubernetes context was provided')
@@ -112,7 +115,7 @@ class Kubectl(object):
             self.cluster['certificate-authority']
         ))
 
-        self.cert=(
+        self.cert = (
             os.path.expanduser("~/.kube/{}".format(
                 self.user["client-certificate"]
             )),
@@ -189,7 +192,7 @@ class Kubectl(object):
                     if pod.status.phase == "Running":
                         return pod.metadata.name
                     else:
-                        logger.info(
+                        LOG.info(
                             "Container %s found but status is %s",
                             pod.metadata.name,
                             pod.status.phase
@@ -227,7 +230,7 @@ class Kubectl(object):
             "/namespaces",
             data={
                 "kind": "Namespace",
-                "apiVersion": apiVersion,
+                "apiVersion": API_VERSION,
                 "metadata": {
                     "name": namespace,
                 }
@@ -266,7 +269,7 @@ class Kubectl(object):
         :param single: particular resource we want [default: None]
         :returns: One resource object or a list of resource objects
         """
-        if resource_type == "pv"
+        if resource_type == "pv":
             if single is None:
                 resources = bunch.bunchify(
                     self._get('/persistentvolumes')
@@ -306,10 +309,10 @@ class Kubectl(object):
 
             else:
                 result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
-                        namespace=self.namespace,
-                        resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
-                        name=single
-                    ))
+                    namespace=self.namespace,
+                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
+                    name=single
+                ))
 
                 return bunch.bunchify(result)
 
@@ -324,6 +327,9 @@ class Kubectl(object):
     #         data=object.to_json()
     #     ))
     def exec_cmd(self, pod, container, *command):
+        """Execute a command in a pod/container.  If container is None
+        the kubectl behavior is to pick the first container if possible
+        """
         if container is None:
             return self.kubectl(
                 'exec',
@@ -354,29 +360,29 @@ class Kubectl(object):
         if recursive:
             path += "/**/*.yml"
         else:
-            path ++ "/*.yml"
+            path += "/*.yml"
 
-        CACHE = {}
+        cache = {}
 
         for resource_fn in glob2.glob(path):
-            logger.info('Applying %r', resource_fn)
+            LOG.info('Applying %r', resource_fn)
             if os.path.isdir(resource_fn):
                 continue
 
-            with open(resource_fn) as h:
-                resource = yaml.load(h.read())
+            with open(resource_fn) as handle:
+                resource = yaml.load(handle.read())
 
-            if resource['kind'] not in CACHE:
-                logger.info('Reading %s from kubernetes...', KIND_TO_TYPE[resource['kind']])
+            if resource['kind'] not in cache:
+                LOG.info('Reading %s from kubernetes...', KIND_TO_TYPE[resource['kind']])
 
                 resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
 
-                logger.info('Found %i %s', len(resource_list), KIND_TO_TYPE[resource['kind']])
-                CACHE[resource['kind']] = {}
-                for r in resource_list:
-                    CACHE[resource['kind']][r["metadata"]["name"]] = r
+                LOG.info('Found %i %s', len(resource_list), KIND_TO_TYPE[resource['kind']])
+                cache[resource['kind']] = {}
+                for res in resource_list:
+                    cache[resource['kind']][res["metadata"]["name"]] = res
 
-            if resource["metadata"]["name"] in CACHE[resource['kind']]:
+            if resource["metadata"]["name"] in cache[resource['kind']]:
                 # we want to upgrade an existing resource
                 if resource['kind'] == "Deployment":
                     self.replace_path(resource_fn)
@@ -384,12 +390,13 @@ class Kubectl(object):
                     self.delete_path(resource_fn)
                     self.create_path(resource_fn)
                 else:
-                    logger.info('Skipping over %r', resource_fn)
+                    LOG.info('Skipping over %r', resource_fn)
             else:
                 # we have a new resource
-                logger.info('Did not find %r in %r.  Creating...',
+                LOG.info(
+                    'Did not find %r in %r.  Creating...',
                     resource["metadata"]["name"],
-                    CACHE[resource['kind']].keys()
+                    cache[resource['kind']].keys()
                 )
                 self.create_path(resource_fn)
 
@@ -444,8 +451,8 @@ class Kubectl(object):
         # of one per file).
         cache = {}
         for resource_fn in glob2.glob(path):
-            with open(resource_fn) as h:
-                resource = yaml.load(h)
+            with open(resource_fn) as handle:
+                resource = yaml.load(handle)
 
             # if TYPE_TO_KIND fails with keyerror you probably need to add a
             # new entry to the dict above.
@@ -453,11 +460,11 @@ class Kubectl(object):
                 if not resource_type in cache:
                     cache[resource_type] = {}
                     resource_list = self.get_resource(resource_type)
-                    for r in resource_list:
-                        cache[resource_type][r['metadata']['name']] = r
+                    for res in resource_list:
+                        cache[resource_type][res['metadata']['name']] = res
 
                 if resource['metadata']['name'] not in cache[resource_type]:
-                    logger.info('Creating {}'.format(resource_fn))
+                    LOG.info('Creating %s', resource_fn)
                     self.create_path(resource_fn)
                     # placeholder, on the off chance there are two yaml files
                     # that both reference the same metadata.name??
@@ -468,12 +475,15 @@ class Kubectl(object):
 
         :param resource_type: simple resource type (service, pod, rc, etc..)
         """
-        for resource in bunch.Bunch.fromYAML(self.kubectl.get(
-            resource_type,
-            '--context={}'.format(self.context),
-            '--namespace={}'.format(self.namespace),
-            '-o', 'yaml'
-        ).stdout)["items"]:
+        for resource in bunch.Bunch.fromYAML(
+                self.kubectl.get(
+                    resource_type,
+                    '--context={}'.format(self.context),
+                    '--namespace={}'.format(self.namespace),
+                    '-o', 'yaml'
+                ).stdout
+            )["items"]:
+
             resource_name = resource.metadata.name
             logging.info('kubectl delete %s %s', resource_type, resource_name)
 
@@ -510,14 +520,14 @@ class Kubectl(object):
             node_name=node_name,
             tempfn=tempfn
         )
-        logger.info('scp %r %r' % (source_fn, destination))
+        LOG.info('scp %r %r', source_fn, destination)
         sh.scp(source_fn, destination)
 
-        containerID = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
+        container_id = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
 
         command = "docker cp {origin} {container}:{destination}".format(
             origin=tempfn,
-            container=containerID,
+            container=container_id,
             destination=destination_fn
         )
 
@@ -531,7 +541,7 @@ class Kubectl(object):
         """
         for pv in self.get_resource('pv'):
             if pv.status.phase in ['Released', 'Failed']:
-                logger.info('Rebuilding PV %s', pv.metadata['name'])
+                LOG.info('Rebuilding PV %s', pv.metadata['name'])
                 self.kubectl.delete.pv(pv.metadata.name, context=self.context)
                 self.kubectl.create(context=self.context, _in=pv.toYAML())
 
@@ -560,8 +570,8 @@ def reimage(filename, xpath, newvalue, save_to=None):
     >>> reimage("./tests/reimage_test.yml", "alpha.beta.gamma.0.delta", "epsilon", "./tests/reimage_test_done.yml")
     {'alpha': {'beta': {'gamma': [{'a': 'silly', 'c': 'are', 'b': 'tests', 'e': 'useful', 'd': 'often', 'f': 'working', 'delta': 'epsilon'}, {'a': 'dummy'}]}}, 'junk': {'this': {'is': [{'just': 'noise'}]}}}
     """
-    with open(filename, 'r') as h:
-        yml = yaml.load(h.read())
+    with open(filename, 'r') as handle:
+        yml = yaml.load(handle.read())
 
     sub_yml = yml
     xplst = xpath.split('.')
@@ -574,6 +584,6 @@ def reimage(filename, xpath, newvalue, save_to=None):
     if save_to is None:
         save_to = filename
 
-    with open(save_to, 'w') as h:
-        h.write(yaml.dump(yml))
+    with open(save_to, 'w') as handle:
+        handle.write(yaml.dump(yml))
     return yml
