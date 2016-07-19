@@ -256,6 +256,20 @@ class Kubectl(object):
 
     # generic
 
+    def get_persistent_volume(self, single=None):
+        """Retrive one or more persistent volumes.
+
+        we can't use get_resources because pv are not namespaced
+        """
+
+        if single is None:
+            resources = bunch.bunchify(
+                self._get('/persistentvolumes')
+            )
+
+            return resources.get("items", [])
+
+
     def get_resource(self, resource_type, single=None):
         """Retrieve one or more resource objects.  To get one
         object you need to provide the object name.
@@ -337,7 +351,13 @@ class Kubectl(object):
                 resource = yaml.load(h.read())
 
             if resource['kind'] not in CACHE:
-                resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
+                logger.info('Reading %s from kubernetes...', KIND_TO_TYPE[resource['kind']])
+                if resource['kind'] == "PersistentVolume":
+                    resource_list = self.get_persistent_volume()
+                else:
+                    resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
+
+                logger.info('Found %i %s', len(resource_list), KIND_TO_TYPE[resource['kind']])
                 CACHE[resource['kind']] = {}
                 for r in resource_list:
                     CACHE[resource['kind']][r["metadata"]["name"]] = r
