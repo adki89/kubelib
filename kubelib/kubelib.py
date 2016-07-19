@@ -17,7 +17,9 @@ apiVersion = "v1"
 #: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
+    'pv': 'PersistentVolume',
     'pvc': 'PersistentVolumeClaim',
+    'rc': 'ReplicationController',
     'services': "Service",
 }
 
@@ -25,6 +27,8 @@ TYPE_TO_KIND = {
 KIND_TO_TYPE = {}
 for kube_type in TYPE_TO_KIND:
     KIND_TO_TYPE[TYPE_TO_KIND[kube_type]] = kube_type
+
+ALWAYS_RESET = ['ReplicationController']
 
 # flexible in what we accept, strict in what we provide
 CANONICAL_TYPE = {
@@ -318,18 +322,22 @@ class Kubectl(object):
         Deployments are rolled out
         """
         if recursive:
-            path += "/**/*"
+            path += "/**/*.yml"
         else:
-            path ++ "/*"
+            path ++ "/*.yml"
 
         CACHE = {}
 
         for resource_fn in glob2.glob(path):
+            logger.info('Applying %r', resource_fn)
+            if os.path.isdir(resource_fn):
+                continue
+
             with open(resource_fn) as h:
-                resource = yaml.load(h)
+                resource = yaml.load(h.read())
 
             if resource['kind'] not in CACHE:
-                resource_list = self.get_resource(KIND_TO_TYPE(resource_type))
+                resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
                 CACHE[resource['kind']] = {}
                 for r in resource_list:
                     CACHE[resource['kind']][r["metadata"]["name"]] = r
@@ -338,11 +346,17 @@ class Kubectl(object):
                 # we want to upgrade an existing resource
                 if resource['kind'] == "Deployment":
                     self.replace_path(resource_fn)
-                else:
+                elif resource['kind'] in ALWAYS_RESET:
                     self.delete_path(resource_fn)
                     self.create_path(resource_fn)
+                else:
+                    logger.info('Skipping over %r', resource_fn)
             else:
                 # we have a new resource
+                logger.info('Did not find %r in %r.  Creating...',
+                    resource["metadata"]["name"],
+                    CACHE[resource['kind']].keys()
+                )
                 self.create_path(resource_fn)
 
     def replace_path(self, path_or_fn):
