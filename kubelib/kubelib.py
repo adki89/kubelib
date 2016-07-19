@@ -289,7 +289,7 @@ class Kubectl(object):
                     self._get('/namespaces/{namespace}/deployments'.format(
                         namespace=self.namespace
                     ))
-                ).get("items, []")
+                ).get("items", [])
             else:
                 resources = bunch.bunchify(
                     self._get('/namespaces/{namespace}/deployments/{name}'.format(
