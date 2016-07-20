@@ -285,11 +285,14 @@ class Kubectl(object):
             old_api_base = self.api_base
             self.api_base = "/apis/extensions/v1beta1"
             if single is None:
-                resources = bunch.bunchify(
-                    self._get('/namespaces/{namespace}/deployments'.format(
-                        namespace=self.namespace
-                    ))
-                ).get("items", [])
+                resource_raw_list = self._get('/namespaces/{namespace}/deployments'.format(
+                    namespace=self.namespace
+                ))
+                bunched_resources = bunch.bunchify(resource_raw_list)
+                if bunched_resources is None:
+                    raise KubeError('Error in response object: %r', resource_raw_list)
+
+                resources = bunched_resources.get("items", [])
             else:
                 resources = bunch.bunchify(
                     self._get('/namespaces/{namespace}/deployments/{name}'.format(
