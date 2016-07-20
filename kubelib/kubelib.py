@@ -361,15 +361,18 @@ class Kubectl(object):
         Deployments are rolled out
         """
         if recursive:
-            path += "/**/*.yml"
+            path += "/**/*"
         else:
-            path += "/*.yml"
+            path += "/*"
 
         cache = {}
 
         for resource_fn in glob2.glob(path):
             LOG.info('Applying %r', resource_fn)
             if os.path.isdir(resource_fn):
+                continue
+
+            if not resource_fn.endswith(('.yml', '.yaml')):
                 continue
 
             with open(resource_fn) as handle:
