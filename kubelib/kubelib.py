@@ -131,6 +131,15 @@ class Kubectl(object):
 
         #self.base_resources = self._get_base_resources()
 
+    def _get_raw(self, url, *args, **kwargs):
+        url = self.cluster.server + self.api_base + url
+        if self.dryrun:
+            print("GET %r (%r, %r)" % (url, args, kwargs))
+            return None
+        else:
+            response = self.client.get(url, *args, cert=self.cert, verify=self.ca, **kwargs)
+            return response
+
     def _get(self, url, *args, **kwargs):
         url = self.cluster.server + self.api_base + url
         if self.dryrun:
@@ -285,12 +294,14 @@ class Kubectl(object):
             old_api_base = self.api_base
             self.api_base = "/apis/extensions/v1beta1"
             if single is None:
-                resource_raw_list = self._get('/namespaces/{namespace}/deployments'.format(
+                resource_raw_list = self._get_raw('/namespaces/{namespace}/deployments'.format(
                     namespace=self.namespace
                 ))
-                bunched_resources = bunch.bunchify(resource_raw_list)
+                bunched_resources = bunch.bunchify(resource_raw_list.json())
                 if bunched_resources is None:
-                    raise KubeError('Error in response object: %r', resource_raw_list)
+                    LOG.error('resource_raw_list: %r', resource_raw_list)
+                    LOG.error('dir(resource_raw_list): %r', dir(resource_raw_list))
+                    raise KubeError('Error in response object: %r' % resource_raw_list)
 
                 resources = bunched_resources.get("items", [])
             else:
