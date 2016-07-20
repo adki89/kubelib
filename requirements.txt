@@ -6,3 +6,4 @@ PyYaml
 sh
 sphinx
 glob2
+requests
