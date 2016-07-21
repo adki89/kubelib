@@ -21,6 +21,7 @@ API_VERSION = "v1"
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
     'deployment': 'Deployment',
+    'ns': "Namespace",
     'pv': 'PersistentVolume',
     'pvc': 'PersistentVolumeClaim',
     'rc': 'ReplicationController',
