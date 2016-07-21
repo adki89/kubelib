@@ -291,6 +291,18 @@ class Kubectl(object):
                         name=single
                     ))
                 )
+        elif resource_type == "ns":
+            if single is None:
+                resources = bunch.bunchify(
+                    self._get('/namespaces')
+                )
+                return resources.get("items", [])
+            else:
+                return bunch.bunchify(
+                    self._get('/namespaces/{name}'.format(
+                        name=single
+                    ))
+                )
         elif resource_type == "deployment":
             old_api_base = self.api_base
             self.api_base = "/apis/extensions/v1beta1"
