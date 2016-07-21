@@ -21,7 +21,8 @@ API_VERSION = "v1"
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
     'deployment': 'Deployment',
-    'ns': "Namespace",
+    'ds': 'DaemonSet',
+    'ns': 'Namespace',
     'pv': 'PersistentVolume',
     'pvc': 'PersistentVolumeClaim',
     'rc': 'ReplicationController',
@@ -419,7 +420,7 @@ class Kubectl(object):
 
             if resource["metadata"]["name"] in cache[resource['kind']]:
                 # we want to upgrade an existing resource
-                if resource['kind'] == "Deployment":
+                if resource['kind'] in ["Deployment", "DaemonSet"]:
                     self.replace_path(resource_fn)
                 elif resource['kind'] in ALWAYS_RESET:
                     self.delete_path(resource_fn)
