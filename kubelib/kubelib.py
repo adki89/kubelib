@@ -221,6 +221,8 @@ class Kubectl(object):
     def get_namespaces(self):
         """Retrieve namespace objects from kubernetes.
 
+        OBSOLETE: get_resource on namespaces should work now
+
         :returns: List of namespace objects
         """
         return bunch.bunchify(self._get("/namespaces")['items'])
