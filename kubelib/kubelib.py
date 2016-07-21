@@ -20,7 +20,7 @@ API_VERSION = "v1"
 #: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
-    'deployment': 'Deployment',
+    'deployments': 'Deployment',
     'ds': 'DaemonSet',
     'ns': 'Namespace',
     'pv': 'PersistentVolume',
@@ -306,24 +306,24 @@ class Kubectl(object):
                         name=single
                     ))
                 )
-        elif resource_type == "deployment":
+        elif resource_type in ["deployments", "ds"]:
             old_api_base = self.api_base
             self.api_base = "/apis/extensions/v1beta1"
             if single is None:
-                resource_raw_list = self._get_raw('/namespaces/{namespace}/deployments'.format(
-                    namespace=self.namespace
+                resource_raw_list = self._get_raw('/namespaces/{namespace}/{resource_type}'.format(
+                    namespace=self.namespace,
+                    resource_type=resource_type,
                 ))
                 bunched_resources = bunch.bunchify(resource_raw_list.json())
                 if bunched_resources is None:
-                    LOG.error('resource_raw_list: %r', resource_raw_list)
-                    LOG.error('dir(resource_raw_list): %r', dir(resource_raw_list))
                     raise KubeError('Error in response object: %r' % resource_raw_list)
 
                 resources = bunched_resources.get("items", [])
             else:
                 resources = bunch.bunchify(
-                    self._get('/namespaces/{namespace}/deployments/{name}'.format(
+                    self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
                         namespace=self.namespace,
+                        resource_type=resource_type,
                         name=single
                     ))
                 )
