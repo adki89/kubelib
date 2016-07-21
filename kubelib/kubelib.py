@@ -21,7 +21,7 @@ API_VERSION = "v1"
 #: strings that Kubernetes wants in .yaml file 'Kind' fields.
 TYPE_TO_KIND = {
     'deployments': 'Deployment',
-    'ds': 'DaemonSet',
+    'daemonsets': 'DaemonSet',
     'ns': 'Namespace',
     'pv': 'PersistentVolume',
     'pvc': 'PersistentVolumeClaim',
@@ -306,7 +306,7 @@ class Kubectl(object):
                         name=single
                     ))
                 )
-        elif resource_type in ["deployments", "ds"]:
+        elif resource_type in ["deployments", "daemonsets"]:
             old_api_base = self.api_base
             self.api_base = "/apis/extensions/v1beta1"
             if single is None:
