@@ -1,8 +1,38 @@
 #!/usr/bin/python
 
 import kubelib
+import logging, logging.config
 
-k = kubelib.Kubectl()
+logging.config.dictConfig({
+    'version': 1,
+    'formatters': {
+        'detailed': {
+            'class': 'logging.Formatter',
+            'format': '%(asctime)s %(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'detailed'
+        }
+    },
+    'loggers': {
+        'kubelib': {
+            'level': 'DEBUG',
+            'propagate': True
+        }
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console']
+    }
+})
+
+LOG = logging.getLogger(__name__)
+
+#k = kubelib.Nameubectl()
 #print repr(k.base_resources)
 
 #print repr(k.get_pod("www-controller-hi66l"))
@@ -13,5 +43,5 @@ k = kubelib.Kubectl()
 #print ("\n\n")
 #print repr(k.delete_namespace("jkane-test"))
 #print ("\n\n")
-for ns in k.get_namespaces():
+for ns in kubelib.Namespace(kubelib.KubeConfig()).get_list():
 	print ns.metadata.name
