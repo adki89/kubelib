@@ -30,9 +30,17 @@ Get a specific pod::
     pod = kubelib.Pod(kube).get(podname)
     print(pod.toJSON())
 
+
+Upgrading Kubernetes
+--------------------
+
 Upgrade kubernetes based on a directory of yaml files::
 
+    import kubelib
+    kube = kubelib.KubeConfig(context='dev-seb', namespace='myspace')
     kube.apply_path("./kubernetes", recursive=True)
+
+This will look at every yaml file and act based on the "Kind" field.  Deployments are replaced, replication controllers are deleted and re-created.  Other "Kind" resources are created if a resource with that "Kind" and "Name" is not already present.
 
 ------
 
