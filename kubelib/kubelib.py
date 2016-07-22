@@ -147,9 +147,21 @@ class KubeUtils(KubeConfig):
         :param container: pod name you want to copy the file into
         :param destination_fn: path and filename to place it (path must exist)
         """
-        pod_obj = Pod(self).get(pod)
-        tempfn = "temp.fn"
-        node_name = pod_obj.spec.nodeName
+        success = False
+        max_retry = 20
+        retry_count = 0
+
+        while success == False and retry_count < max_retry:
+            pod_obj = Pod(self).get(pod)
+            tempfn = "temp.fn"
+            try:
+                node_name = pod_obj.spec.nodeName
+                success = True
+            except AttributeError as err:
+                LOG.error('Error collecting node data: %r', err)
+                LOG.error('pod_obj: %r', pod_obj)
+                time.sleep(2)
+                retry_count += 1
 
         destination = "{node_name}:{tempfn}".format(
             node_name=node_name,
