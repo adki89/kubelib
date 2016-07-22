@@ -101,7 +101,9 @@ class KubeConfig(object):
 
     def set_namespace(self, namespace=None):
         if namespace is None:
-            self.namespace = self.context_obj.context.get('namespace')
+            namespace = self.context_obj.context.get('namespace')
+
+        self.namespace = namespace
 
 class KubeUtils(KubeConfig):
 
@@ -462,12 +464,10 @@ class ReplicationController(DeleteCreateActor):
 class Service(CreateIfMissingActor):
     url_type = "service"
 
-
 def resource_by_kind(kind):
     for resource in RESOURCE_CLASSES:
         if resource.__name__ == kind:
             return resource
-
 
 # simple convenience wrappers for KubeUtils functions
 
