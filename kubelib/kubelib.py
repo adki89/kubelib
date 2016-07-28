@@ -198,7 +198,11 @@ class KubeUtils(KubeConfig):
             if pv.status.phase in ['Released', 'Failed']:
                 LOG.info('Rebuilding PV %s', pv.metadata['name'])
                 self.kubectl.delete.pv(pv.metadata.name, context=self.context)
-                self.kubectl.create(context=self.context, _in=pv.toYAML())
+                self.kubectl.create(
+                    context=self.context,
+                    _in=pv.toYAML(),
+                    "--save-config"
+                )
 
 class Kubernetes(object):
     api_base = "/api/v1"
@@ -290,7 +294,8 @@ class ActorBase(ResourceBase):
         self.kubectl.create(
             '-f', path_or_fn,
             '--namespace={}'.format(self.namespace),
-            '--context={}'.format(self.context)
+            '--context={}'.format(self.context),
+            '--save-config'
         )
 
     def delete_path(self, path_or_fn):
@@ -344,10 +349,11 @@ class CreateIfMissingActor(ActorBase):
 class IgnoreActor(ActorBase):
     """null-op, don't do anything"""
 
+########################################
+
 class Deployment(ReplaceActor):
     url_type = 'deployments'
     api_base = "/apis/extensions/v1beta1"
-
 
 class DaemonSet(ReplaceActor):
     url_type = "daemonsets"
@@ -470,11 +476,58 @@ class Pod(IgnoreActor):
                 '--', *command
             )
 
+class Policy(CreateIfMissingActor):
+    url_type = "policy"
+    api_base = "abac.authorization.kubernetes.io/v1beta1"
+
 class ReplicationController(DeleteCreateActor):
     url_type = "rc"
 
+class Role(CreateIfMissingActor):
+    url_type = "role"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class ClusterRole(CreateIfMissingActor):
+    url_type = "clusterrole"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class RoleBinding(CreateIfMissingActor):
+    url_type = "rolebinding"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class ClusterRoleBinding(CreateIfMissingActor):
+    url_type = "clusterrolebinding"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
 class Service(CreateIfMissingActor):
     url_type = "service"
+
+class Secret(CreateIfMissingActor):
+    url_type = "secret"
+
+    def create(self, name, dict_of_secrets):
+        encoded_dict = {}
+        for key in dict_of_secrets:
+            encoded_dict[key] = base64.b64encode(dict_of_secrets[key])
+
+        response = self._post(
+            "/namespaces/{namespace}/secrets".format(
+                namespace=self.namespace
+            ),
+            data={
+                "kind": "Secret",
+                "apiVersion": "v1",
+                "metadata": {
+                    "name": name,
+                },
+                "type": "Opaque",
+                "data": encoded_dict
+            }
+        )
+        if response['status'] == "Failure":
+            raise KubeError(response)
+
+########################################
 
 def resource_by_kind(kind):
     for resource in RESOURCE_CLASSES:
@@ -572,3 +625,80 @@ class Kubectl(KubeUtils):
 
     def create_namespace(self, namespace):
         return Namespace(self).create(namespace)
+
+    def create_path(self, path_or_fn):
+        self.kubectl.create(
+            context=self.context,
+            namespace=self.namespace,
+            "-f {}".format(path_or_fn),
+            '--save-config'
+        )
+
+    def delete_path(self, path_or_fn):
+        self.kubectl.delete(
+            context=self.context,
+            namespace=self.namespace,
+            "-f {}".format(path_or_fn)
+        )
+
+    def create_if_missing(self, friendly_resource_type, glob_path):
+
+        cache = {}
+        for resource_fn in glob2.glob(glob_path):
+            with open(resource_fn) as handle:
+                resource_desc = bunch.Bunch.fromYAML(
+                    yaml.load(handle.read())
+                )
+
+            # is this a friendly_resource_type?
+            friendly_to_kind = {
+                'componentstatuses': 'ComponentStatus',
+                'cs': 'ComponentStatus',
+                'configmaps': 'ConfigMap',
+                'daemonsets': '',
+                'ds': '',
+                'deployments': '',
+                'events': 'Event',
+                'ev': 'Event',
+                'endpoints': '',
+                'ep': '',
+                'horizontalpodautoscalers': '',
+                'hpa': '',
+                'ingress': '',
+                'ing': '',
+                'jobs': '',
+                'limitranges': '',
+                'limits': '',
+                'nodes': '',
+                'no': '',
+                'namespaces': '',
+                'ns': '',
+                'pods': 'Pod',
+                'po': 'Pod',
+                'persistentvolumes': 'PersistentVolume'
+                'pv': 'PersistentVolume',
+                'persistentvolumeclaims': 'PersistentVolumeClaim',
+                'pvc': 'PersistentVolumeClaim',
+                'quota': '',
+                'resourcequotas': '',
+                'replicasets': '',
+                'rs': '',
+                'replicationcontrollers': '',
+                'rc': '',
+                'secrets': '',
+                'serviceaccounts': '',
+                'sa': '',
+                'services': 'Service',
+                'svc': 'Service',
+            }
+            if resource_desc.kind != friendly_to_kind[friendly_resource_type]:
+                continue
+
+            if resource_desc.kind not in cache:
+                resource_class = resource_by_kind(resource_desc.kind)
+                resource = resource_class(self)
+                cache[resource_desc.kind] = resource
+
+            if not cache[resource_desc.kind].exists(desc.metadata.name):
+                self.create_path(filename)
+
