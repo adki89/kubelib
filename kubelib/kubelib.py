@@ -15,104 +15,70 @@ import sh
 LOG = logging.getLogger(__name__)
 logging.info('Starting...')
 
-API_VERSION = "v1"
-
-#: Mapping of kubernetes resource types (pvc, pods, service, etc..) to the
-#: strings that Kubernetes wants in .yaml file 'Kind' fields.
-TYPE_TO_KIND = {
-    'deployments': 'Deployment',
-    'daemonsets': 'DaemonSet',
-    'ns': 'Namespace',
-    'pv': 'PersistentVolume',
-    'pvc': 'PersistentVolumeClaim',
-    'rc': 'ReplicationController',
-    'services': "Service",
-}
-
-# inverse
-KIND_TO_TYPE = {}
-for kube_type in TYPE_TO_KIND:
-    KIND_TO_TYPE[TYPE_TO_KIND[kube_type]] = kube_type
-
-ALWAYS_RESET = ['ReplicationController']
-
-# flexible in what we accept, strict in what we provide
-CANONICAL_TYPE = {
-    'ns': 'namespaces',
-    'pod': "pods",
-    'pv': 'persistentvolumes',
-    'pvc': 'persistentvolumeclaims',
-    'rc': 'replicationcontrollers',
-    'node': 'nodes'
-}
-
 
 class TimeOut(Exception):
     """maximum timeout exceeded"""
 
-
 class KubeError(Exception):
     """Generic Kubernetes error wrapper"""
-
 
 class ContextRequired(KubeError):
     """Everything requires a context"""
 
+class ClusterNotFound(KubeError):
+    """Probably a bad ~/.kube/config"""
 
-class Kubectl(object):
-    """Wrapper around the kubernetes api."""
-    api_base = "/api/v1"
+class KubeConfig(object):
+    config = None
+    context = None
+    namespace = None
+    cluster = None
+    context_obj = None
 
-    def __init__(self, context=None, namespace=None, dryrun=False):
-        """Create new Kubectl object.
+    def __init__(self, context=None, namespace=None):
+        """Create new KubeConfig object.
 
         :params context: Kubernetes context for this object
         :params namespace: Kubernetes namespace, defaults to the current default
-        :params dryrun: When truthy don't actually send anything to kubectl
         """
         with open(os.path.expanduser("~/.kube/config")) as handle:
             self.config = bunch.Bunch.fromYAML(
                 handle.read()
             )
 
-        if context is None:
-            # default to the current context
-            context = self.config['current-context']
-        #: Kubernetes context
-        self.context = context
+        self.set_context(context)
 
         #if namespace is None:
         # default to the current kubectl namespace
         cluster_name = None
         for context_obj in self.config.contexts:
-            if context_obj.name == context:
-                if namespace is None:
-                    namespace = context_obj.context.get('namespace')
+            if context_obj.name == self.context:
+                self.context_obj = context_obj
 
-                cluster_name = context_obj.context.cluster
-                user_name = context_obj.context.user
+        if self.context_obj is None:
+            raise ContextRequired('Context %r not found' % self.context)
+
+        self.set_namespace(namespace)
+
+        cluster_name = self.context_obj.context.cluster
+        user_name = self.context_obj.context.user
 
         if cluster_name is None:
-            raise ContextRequired('No kubernetes context was provided')
+            raise ClusterNotFound('Context %r has no cluster' % context)
 
         for cluster in self.config.clusters:
             if cluster.name == cluster_name:
                 self.cluster = cluster.cluster
                 self.cluster.name = cluster_name
 
+        if self.cluster is None:
+            raise ClusterNotFound('Failed to find cluster: %r' % cluster_name)
+
         for user in self.config.users:
             if user.name == user_name:
                 self.user = user.user
                 self.user.name = user_name
 
-        #: Kubernetes namespace
-        self.namespace = namespace
-
-        #: Boolean indicating if we don't want to actually send
-        #: anything to kubectl
-        self.dryrun = dryrun
-
-        self.client = requests.Session()
         self.ca = os.path.expanduser("~/.kube/{}".format(
             self.cluster['certificate-authority']
         ))
@@ -126,277 +92,29 @@ class Kubectl(object):
             ))
         )
 
-        if self.dryrun:
-            self.kubectl = sh.echo
-        else:
-            self.kubectl = sh.kubectl
+    def set_context(self, context=None):
+        if context is None:
+            # default to the current context
+            context = self.config['current-context']
+        #: Kubernetes context
+        self.context = context
 
-        #self.base_resources = self._get_base_resources()
+    def set_namespace(self, namespace=None):
+        if namespace is None:
+            namespace = self.context_obj.context.get('namespace')
 
-    def _get_raw(self, url, *args, **kwargs):
-        url = self.cluster.server + self.api_base + url
-        if self.dryrun:
-            print("GET %r (%r, %r)" % (url, args, kwargs))
-            return None
-        else:
-            response = self.client.get(url, *args, cert=self.cert, verify=self.ca, **kwargs)
-            return response
-
-    def _get(self, url, *args, **kwargs):
-        url = self.cluster.server + self.api_base + url
-        if self.dryrun:
-            print("GET %r (%r, %r)" % (url, args, kwargs))
-            return None
-        else:
-            response = self.client.get(url, *args, cert=self.cert, verify=self.ca, **kwargs)
-            return response.json()
-
-    def _post(self, url, data):
-        url = self.cluster.server + self.api_base + url
-        if self.dryrun:
-            print("POST %r (%r)" % (url, data))
-            return None
-        else:
-            response = self.client.post(url, json=data, cert=self.cert, verify=self.ca)
-            return response.json()
-
-    def _delete(self, url):
-        url = self.cluster.server + self.api_base + url
-        if self.dryrun:
-            print("DELETE %r" % url)
-            return None
-        else:
-            response = self.client.delete(url, cert=self.cert, verify=self.ca)
-            return response.json()
-
-    def _get_base_resources(self):
-        base_resources = []
-        for resource in self._get("/")['resources']:
-            base_resources.append(resource['name'])
-        return base_resources
-    # pods
-
-    def get_pod(self, pod_name_unique):
-        """Return an object describing the given pod
-
-        :param pod_name_unique: Full name of the pod
-        :returns: Object of pod attributes
-        """
-        return self.get_resource('pod', pod_name_unique)
-
-    def wait_for_pod(self, pod_name, max_delay=300):
-        """Block until the given pod is running.
-
-        Returns the full unique pod name
-
-        :param pod_name: Pod name (without unique suffix)
-        :param max_delay: Maximum number of seconds to wait
-        :returns: Unique pod name
-        :raises TimeOut: When max_delay is exceeded
-        """
-        start = time.time()
-
-        while 1:
-            pods = self.get_resource('pod')
-            for pod in pods:
-                if pod.metadata.generateName == pod_name + '-':
-                    if pod.status.phase == "Running":
-                        return pod.metadata.name
-                    else:
-                        LOG.info(
-                            "Container %s found but status is %s",
-                            pod.metadata.name,
-                            pod.status.phase
-                        )
-
-            # ok, we got through the list of all pods without finding
-            # an acceptable running pod.  So we pause (briefly) and try again.
-
-            if time.time() - start > max_delay:
-                raise TimeOut('Maximum delay {} exceeded'.format(max_delay))
-            else:
-                time.sleep(2)
-
-    # namespaces
-
-    def get_namespaces(self):
-        """Retrieve namespace objects from kubernetes.
-
-        OBSOLETE: get_resource on namespaces should work now
-
-        :returns: List of namespace objects
-        """
-        return bunch.bunchify(self._get("/namespaces")['items'])
-
-    def create_namespace(self, namespace):
-        """Create the given namespace.
-
-        This almost makes the new namespace our new default for
-        subsequent operations.
-
-        :param namespace: name of the namespace we want to create
-        :returns: True if the create succeeded, False otherwise (it already exists)
-        """
         self.namespace = namespace
 
-        response = self._post(
-            "/namespaces",
-            data={
-                "kind": "Namespace",
-                "apiVersion": API_VERSION,
-                "metadata": {
-                    "name": namespace,
-                }
-            }
-        )
-        if response['status'] == "Failure":
-            # I would rather raise.. but want to stay backward
-            # compatible for a little while.
-            # raise KubeError(response)
-            return False
-
-        return True
-
-    def delete_namespace(self, namespace):
-        """Delete the given namespace.
-
-        :param namespace: name of the namespace we want to delete
-        """
-        if self.namespace == namespace:
-            self.namespace = None
-
-        response = self._delete(
-            "/namespaces/{name}".format(
-                name=namespace
-            )
-        )
-        return response
-
-    # generic
-
-    def get_resource(self, resource_type, single=None):
-        """Retrieve one or more resource objects.  To get one
-        object you need to provide the object name.
-
-        :param resource_type: simple resource type (service, pod, rc, etc..)
-        :param single: particular resource we want [default: None]
-        :returns: One resource object or a list of resource objects
-        """
-        if resource_type == "pv":
-            if single is None:
-                resources = bunch.bunchify(
-                    self._get('/persistentvolumes')
-                )
-                return resources.get("items", [])
-            else:
-                return bunch.bunchify(
-                    self._get('/persistentvolumes/{name}'.format(
-                        name=single
-                    ))
-                )
-        elif resource_type == "ns":
-            if single is None:
-                resources = bunch.bunchify(
-                    self._get('/namespaces')
-                )
-                return resources.get("items", [])
-            else:
-                return bunch.bunchify(
-                    self._get('/namespaces/{name}'.format(
-                        name=single
-                    ))
-                )
-        elif resource_type in ["deployments", "daemonsets"]:
-            old_api_base = self.api_base
-            self.api_base = "/apis/extensions/v1beta1"
-            if single is None:
-                resource_raw_list = self._get_raw('/namespaces/{namespace}/{resource_type}'.format(
-                    namespace=self.namespace,
-                    resource_type=resource_type,
-                ))
-                bunched_resources = bunch.bunchify(resource_raw_list.json())
-                if bunched_resources is None:
-                    raise KubeError('Error in response object: %r' % resource_raw_list)
-
-                resources = bunched_resources.get("items", [])
-            else:
-                resources = bunch.bunchify(
-                    self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
-                        namespace=self.namespace,
-                        resource_type=resource_type,
-                        name=single
-                    ))
-                )
-            self.api_base = old_api_base
-            return resources
-        else:
-            if single is None:
-                resources = bunch.bunchify(
-                    self._get('/namespaces/{namespace}/{resource_type}'.format(
-                        namespace=self.namespace,
-                        resource_type=CANONICAL_TYPE.get(resource_type, resource_type)
-                    ))
-                )
-
-                return resources.get("items", [])
-
-            else:
-                result = self._get('/namespaces/{namespace}/{resource_type}/{name}'.format(
-                    namespace=self.namespace,
-                    resource_type=CANONICAL_TYPE.get(resource_type, resource_type),
-                    name=single
-                ))
-
-                return bunch.bunchify(result)
-
-    # too hard to use
-    # def create(self, object):
-    #     """Create the given object
-
-    #     :param object: pod to be created.  Python object that must provide a to_json() method.
-    #     """
-    #     return self._post('/namespaces/{namespace}/pods'.format(
-    #         namespace=self.namespace,
-    #         data=object.to_json()
-    #     ))
-    def exec_cmd(self, pod, container, *command):
-        """Execute a command in a pod/container.  If container is None
-        the kubectl behavior is to pick the first container if possible
-        """
-        if container is None:
-            return self.kubectl(
-                'exec',
-                pod,
-                '--namespace={}'.format(self.namespace),
-                '--context={}'.format(self.context),
-                '--', *command
-            )
-        else:
-            return self.kubectl(
-                'exec',
-                pod,
-                '--namespace={}'.format(self.namespace),
-                '--context={}'.format(self.context),
-                '-c', container,
-                '--', *command
-            )
+class KubeUtils(KubeConfig):
 
     def apply_path(self, path, recursive=False):
-        """Process all yaml files in the given path.
 
-        Each file is opened up and handled based on its "Kind" field.
-
-        Most things are deleted then created
-
-        Deployments are rolled out
-        """
         if recursive:
             path += "/**/*"
         else:
             path += "/*"
 
         cache = {}
-
         for resource_fn in glob2.glob(path):
             LOG.info('Applying %r', resource_fn)
             if os.path.isdir(resource_fn):
@@ -406,35 +124,156 @@ class Kubectl(object):
                 continue
 
             with open(resource_fn) as handle:
-                resource = yaml.load(handle.read())
-
-            if resource['kind'] not in cache:
-                LOG.info('Reading %s from kubernetes...', KIND_TO_TYPE[resource['kind']])
-
-                resource_list = self.get_resource(KIND_TO_TYPE[resource['kind']])
-
-                LOG.info('Found %i %s', len(resource_list), KIND_TO_TYPE[resource['kind']])
-                cache[resource['kind']] = {}
-                for res in resource_list:
-                    cache[resource['kind']][res["metadata"]["name"]] = res
-
-            if resource["metadata"]["name"] in cache[resource['kind']]:
-                # we want to upgrade an existing resource
-                if resource['kind'] in ["Deployment", "DaemonSet"]:
-                    self.replace_path(resource_fn)
-                elif resource['kind'] in ALWAYS_RESET:
-                    self.delete_path(resource_fn)
-                    self.create_path(resource_fn)
-                else:
-                    LOG.info('Skipping over %r', resource_fn)
-            else:
-                # we have a new resource
-                LOG.info(
-                    'Did not find %r in %r.  Creating...',
-                    resource["metadata"]["name"],
-                    cache[resource['kind']].keys()
+                resource_desc = bunch.Bunch.fromYAML(
+                    yaml.load(handle.read())
                 )
-                self.create_path(resource_fn)
+
+            if resource_desc.kind not in cache:
+                resource_class = resource_by_kind(resource_desc.kind)
+                resource = resource_class(self)
+                cache[resource_desc.kind] = resource
+
+            cache[resource_desc.kind].apply(resource_desc)
+
+    def copy_to_pod(self, source_fn, pod, destination_fn):
+        """Copy a file into the given pod.
+
+        This can be handy for dropping files into a pod for testing.
+
+        You need to have passwordless ssh access to the node and
+        be a member of the docker group there.
+
+        :param source_fn: path and filename you want to copy
+        :param container: pod name you want to copy the file into
+        :param destination_fn: path and filename to place it (path must exist)
+        """
+        success = False
+        max_retry = 20
+        retry_count = 0
+
+        while success == False and retry_count < max_retry:
+            pod_obj = Pod(self).get(pod)
+            tempfn = "temp.fn"
+            try:
+                node_name = pod_obj.spec.nodeName
+                success = True
+            except AttributeError as err:
+                LOG.error('Error collecting node data: %r', err)
+                LOG.error('pod_obj: %r', pod_obj)
+                time.sleep(2)
+                retry_count += 1
+
+        destination = "{node_name}:{tempfn}".format(
+            node_name=node_name,
+            tempfn=tempfn
+        )
+        LOG.info('scp %r %r', source_fn, destination)
+        sh.scp(source_fn, destination)
+
+        container_id = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
+
+        command = "docker cp {origin} {container}:{destination}".format(
+            origin=tempfn,
+            container=container_id,
+            destination=destination_fn
+        )
+
+        sh.ssh(node_name, command)
+
+    def delete_by_type(self, resource_type):
+        """loop through and destroy all resources of the given type.
+
+        :param resource_type: resource type (Service, Pod, etc..)
+        """
+        resource = resource_by_kind(resource_type)(self)
+
+        for resource_obj in resource.get_list():
+            resource.delete(resource_obj.metadata.name)
+
+    def clean_volumes(self):
+        """Delete and rebuild any persistent volume in a released
+        or failed state.
+        """
+        for pv in PersistentVolume(self).get_list():
+            if pv.status.phase in ['Released', 'Failed']:
+                LOG.info('Rebuilding PV %s', pv.metadata['name'])
+                self.kubectl.delete.pv(pv.metadata.name, context=self.context)
+                self.kubectl.create(
+                    context=self.context,
+                    _in=pv.toYAML(),
+                    "--save-config"
+                )
+
+class Kubernetes(object):
+    api_base = "/api/v1"
+
+    def __init__(self, kubeconfig):
+        self.config = kubeconfig
+        self.client = requests.Session()
+        self.client.cert = kubeconfig.cert
+        self.client.verify = self.config.ca
+        self.kubectl = sh.kubectl
+
+    def _get(self, url, **kwargs):
+        url = self.config.cluster.server + self.api_base + url
+        response = self.client.get(url, **kwargs)
+        return response.json()
+
+    def _post(self, url, data):
+        url = self.config.cluster.server + self.api_base + url
+        response = self.client.post(url, json=data)
+        return response.json()
+
+    def _delete(self, url):
+        url = self.config.cluster.server + self.api_base + url
+        response = self.client.delete(url)
+        return response.json()
+
+class ResourceBase(Kubernetes):
+    url_type = None
+    list_uri = "/namespaces/{namespace}/{resource_type}"
+    single_uri = "/namespaces/{namespace}/{resource_type}/{name}"
+
+    def get_list(self):
+        resources = bunch.bunchify(
+            self._get(
+                self.list_uri.format(
+                    namespace=self.config.namespace,
+                    resource_type=self.url_type
+                )
+            )
+        )
+        return resources.get("items", [])
+
+    def get(self, name):
+        return bunch.bunchify(
+            self._get(self.api_base, self.single_uri.format(
+                namespace=self.config.namespace,
+                resource_type=self.url_type,
+                name=name
+            ))
+        )
+
+    def delete(self, name):
+        """delete the named resource
+
+        TODO: should be able to rewrite this as a kube api
+        delete call instead of going through kubectl.
+        """
+
+        try:
+            self.kubectl.delete(
+                self.url_type,
+                name,
+                '--context={}'.format(self.config.context),
+                '--namespace={}'.format(self.config.namespace)
+            )
+        except sh.ErrorReturnCode as err:
+            logging.error("Unexpected response: %r", err)
+
+class ActorBase(ResourceBase):
+    aliases = []
+    cache = None
 
     def replace_path(self, path_or_fn):
         """Simple kubectl replace wrapper.
@@ -455,7 +294,8 @@ class Kubectl(object):
         self.kubectl.create(
             '-f', path_or_fn,
             '--namespace={}'.format(self.namespace),
-            '--context={}'.format(self.context)
+            '--context={}'.format(self.context),
+            '--save-config'
         )
 
     def delete_path(self, path_or_fn):
@@ -473,123 +313,261 @@ class Kubectl(object):
             return False
         return True
 
-    def create_if_missing(self, resource_type, path):
-        """Make sure all resources of the given *resource_type* described
-        by the yaml file(s) at the given *path* location exist.  Create them
-        if they don't.
+    def apply(self, desc, filename):
+        return
 
-        :param resource_type: simple resource type (service, pod, rc, etc..)
-        :param path: location of resource files
+    def exists(self, name, force_reload=False):
+        """Does resource 'name' exist in kubes?"""
+        if self.cache is None or force:
+            res_list = self.get_list()
+            for res in res_list:
+                self.cache[res.metadata.name] = res
+
+        return name in self.cache
+
+class DeleteCreateActor(ActorBase):
+    """Delete this resource and re-create it"""
+    def apply(self, desc, filename):
+        if self.exists(desc.metadata.name):
+            self.delete_path(filename)
+        self.create_path(filename)
+
+class ReplaceActor(ActorBase):
+    """Do a kubectl replace on this object"""
+    def apply(self, desc, filename):
+        if self.exists(desc.metadata.name):
+            self.replace_path(filename)
+        else:
+            self.create_path(filename)
+
+class CreateIfMissingActor(ActorBase):
+    """Create only if missing"""
+    def apply(self, desc, filename):
+        if not self.exists(desc.metadata.name):
+            self.create_path(filename)
+
+class IgnoreActor(ActorBase):
+    """null-op, don't do anything"""
+
+########################################
+
+class Deployment(ReplaceActor):
+    url_type = 'deployments'
+    api_base = "/apis/extensions/v1beta1"
+
+class DaemonSet(ReplaceActor):
+    url_type = "daemonsets"
+    api_base = "/apis/extensions/v1beta1"
+
+class Namespace(CreateIfMissingActor):
+    url_type = "namespaces"
+    aliases = ['ns']
+    list_uri = "/{resource_type}"
+    single_uri = "/{resource_type}/{name}"
+
+    def create(self, namespace):
+        """Create the given namespace.
+
+        :param namespace: name of the namespace we want to create
+        :returns: True if the create succeeded, False otherwise (it already exists)
         """
+        self.namespace = namespace
 
-        # thin resource cache to improve performance when there are many
-        # files with resources of this type (one kube api hit instead
-        # of one per file).
-        cache = {}
-        for resource_fn in glob2.glob(path):
-            with open(resource_fn) as handle:
-                resource = yaml.load(handle)
-
-            # if TYPE_TO_KIND fails with keyerror you probably need to add a
-            # new entry to the dict above.
-            if resource['kind'] == TYPE_TO_KIND[resource_type]:
-                if not resource_type in cache:
-                    cache[resource_type] = {}
-                    resource_list = self.get_resource(resource_type)
-                    for res in resource_list:
-                        cache[resource_type][res['metadata']['name']] = res
-
-                if resource['metadata']['name'] not in cache[resource_type]:
-                    LOG.info('Creating %s', resource_fn)
-                    self.create_path(resource_fn)
-                    # placeholder, on the off chance there are two yaml files
-                    # that both reference the same metadata.name??
-                    cache[resource_type][resource['metadata']['name']] = True
-
-    def delete_by_type(self, resource_type):
-        """loop through and destroy all resources of the given type.
-
-        :param resource_type: simple resource type (service, pod, rc, etc..)
-        """
-        for resource in bunch.Bunch.fromYAML(
-                self.kubectl.get(
-                    resource_type,
-                    '--context={}'.format(self.context),
-                    '--namespace={}'.format(self.namespace),
-                    '-o', 'yaml'
-                ).stdout
-            )["items"]:
-
-            resource_name = resource.metadata.name
-            logging.info('kubectl delete %s %s', resource_type, resource_name)
-
-            try:
-                self.kubectl.delete(
-                    resource_type,
-                    resource_name,
-                    '--context={}'.format(self.context),
-                    '--namespace={}'.format(self.namespace)
-                )
-            except sh.ErrorReturnCode as err:
-                logging.error("Unexpected response: %r", err)
-
-
-    # black magic
-
-    def copy_to_pod(self, source_fn, pod, destination_fn):
-        """Copy a file into the given pod.
-
-        This can be handy for dropping files into a pod for testing.
-
-        You need to have passwordless ssh access to the node and
-        be a member of the docker group there.
-
-        :param source_fn: path and filename you want to copy
-        :param container: pod name you want to copy the file into
-        :param destination_fn: path and filename to place it (path must exist)
-        """
-        pod_obj = self.get_pod(pod)
-        tempfn = "temp.fn"
-        node_name = pod_obj.spec.nodeName
-
-        destination = "{node_name}:{tempfn}".format(
-            node_name=node_name,
-            tempfn=tempfn
+        response = self._post(
+            "/namespaces",
+            data={
+                "kind": "Namespace",
+                "apiVersion": "v1",
+                "metadata": {
+                    "name": namespace,
+                }
+            }
         )
-        LOG.info('scp %r %r', source_fn, destination)
-        sh.scp(source_fn, destination)
+        if response['status'] == "Failure":
+            # I would rather raise.. but want to stay backward
+            # compatible for a little while.
+            # raise KubeError(response)
+            return False
 
-        container_id = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
+        return True
 
-        command = "docker cp {origin} {container}:{destination}".format(
-            origin=tempfn,
-            container=container_id,
-            destination=destination_fn
-        )
+    def delete(self, namespace):
+        """Delete the given namespace.
 
-        sh.ssh(node_name, command)
-
-    # volumes
-
-    def clean_volumes(self):
-        """Delete and rebuild any persistent volume in a released
-        or failed state.
+        :param namespace: name of the namespace we want to delete
         """
-        for pv in self.get_resource('pv'):
-            if pv.status.phase in ['Released', 'Failed']:
-                LOG.info('Rebuilding PV %s', pv.metadata['name'])
-                self.kubectl.delete.pv(pv.metadata.name, context=self.context)
-                self.kubectl.create(context=self.context, _in=pv.toYAML())
+        response = self._delete(
+            "/namespaces/{name}".format(
+                name=namespace
+            )
+        )
+        return response
 
+class Node(IgnoreActor):
+    url_type = "nodes"
+    aliases = ['node']
 
-def maybeint(maybe):
+class PersistentVolume(CreateIfMissingActor):
+    url_type = "persistentvolumes"
+    aliases = ['pv']
+    list_uri = "/{resource_type}"
+    single_uri = "/{resource_type}/{name}"
+
+class PersistentVolumeClaim(CreateIfMissingActor):
+    url_type = "persistentvolumeclaims"
+    aliases = ['pvc']
+
+class Pod(IgnoreActor):
+    url_type = "pods"
+    aliases = ['pod']
+
+    def wait_for_pod(self, pod_name, max_delay=300):
+        """Block until the given pod is running.
+
+        Returns the full unique pod name
+
+        :param pod_name: Pod name (without unique suffix)
+        :param max_delay: Maximum number of seconds to wait
+        :returns: Unique pod name
+        :raises TimeOut: When max_delay is exceeded
+        """
+        start = time.time()
+
+        while 1:
+            pods = self.get_list()
+            for pod in pods:
+                if pod.metadata.generateName == pod_name + '-':
+                    if pod.status.phase == "Running":
+                        return pod.metadata.name
+                    else:
+                        LOG.info(
+                            "Container %s found but status is %s",
+                            pod.metadata.name,
+                            pod.status.phase
+                        )
+
+            # ok, we got through the list of all pods without finding
+            # an acceptable running pod.  So we pause (briefly) and try again.
+
+            if time.time() - start > max_delay:
+                raise TimeOut('Maximum delay {} exceeded'.format(max_delay))
+            else:
+                time.sleep(2)
+
+    def exec_cmd(self, pod, container, *command):
+        """Execute a command in a pod/container.  If container is None
+        the kubectl behavior is to pick the first container if possible
+        """
+        if container is None:
+            return self.kubectl(
+                'exec',
+                pod,
+                '--namespace={}'.format(self.config.namespace),
+                '--context={}'.format(self.config.context),
+                '--', *command
+            )
+        else:
+            return self.kubectl(
+                'exec',
+                pod,
+                '--namespace={}'.format(self.config.namespace),
+                '--context={}'.format(self.config.context),
+                '-c', container,
+                '--', *command
+            )
+
+class Policy(CreateIfMissingActor):
+    url_type = "policy"
+    api_base = "abac.authorization.kubernetes.io/v1beta1"
+
+class ReplicationController(DeleteCreateActor):
+    url_type = "rc"
+
+class Role(CreateIfMissingActor):
+    url_type = "role"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class ClusterRole(CreateIfMissingActor):
+    url_type = "clusterrole"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class RoleBinding(CreateIfMissingActor):
+    url_type = "rolebinding"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class ClusterRoleBinding(CreateIfMissingActor):
+    url_type = "clusterrolebinding"
+    api_base = "rbac.authorization.k8s.io/v1alpha1"
+
+class Service(CreateIfMissingActor):
+    url_type = "service"
+
+class Secret(CreateIfMissingActor):
+    url_type = "secret"
+
+    def create(self, name, dict_of_secrets):
+        encoded_dict = {}
+        for key in dict_of_secrets:
+            encoded_dict[key] = base64.b64encode(dict_of_secrets[key])
+
+        response = self._post(
+            "/namespaces/{namespace}/secrets".format(
+                namespace=self.namespace
+            ),
+            data={
+                "kind": "Secret",
+                "apiVersion": "v1",
+                "metadata": {
+                    "name": name,
+                },
+                "type": "Opaque",
+                "data": encoded_dict
+            }
+        )
+        if response['status'] == "Failure":
+            raise KubeError(response)
+
+########################################
+
+def resource_by_kind(kind):
+    for resource in RESOURCE_CLASSES:
+        if resource.__name__ == kind:
+            return resource
+
+# simple convenience wrappers for KubeUtils functions
+
+def apply_path(
+    path,
+    context=None,
+    namespace=None,
+    recursive=True
+):
+    config = KubeUtils(context=context, namespace=namespace)
+
+    config.apply_path(
+        path, recursive
+    )
+
+def delete_by_type(resource_type, context, namespace):
+    """loop through and destroy all resources of the given type.
+
+    :param resource_type: resource type (Service, Pod, etc..)
     """
-    If it's an int, make it an int.  otherwise leave it as a string.
+    config = KubeUtils(context=context, namespace=namespace)
+    config.delete_by_type(resource_type)
 
-    >>> maybeint("12")
+def copy_to_pod(source_fn, pod, destination_fn, context, namespace):
+    config = KubeUtils(context=context, namespace=namespace)
+    return config.copy_to_pod(source_fn, pod, destination_fn)
+
+def _maybeint(maybe):
+    """
+    If it is an int, make it an int.  otherwise leave it as a string.
+
+    >>> _maybeint("12")
     12
 
-    >>> maybeint("cow")
+    >>> _maybeint("cow")
     'cow'
     """
     try:
@@ -612,7 +590,7 @@ def reimage(filename, xpath, newvalue, save_to=None):
     sub_yml = yml
     xplst = xpath.split('.')
     for pcomp in xplst[:-1]:
-        pcomp = maybeint(pcomp)
+        pcomp = _maybeint(pcomp)
         sub_yml = sub_yml[pcomp]
 
     sub_yml[xplst[-1]] = newvalue
@@ -623,3 +601,104 @@ def reimage(filename, xpath, newvalue, save_to=None):
     with open(save_to, 'w') as handle:
         handle.write(yaml.dump(yml))
     return yml
+
+RESOURCE_CLASSES = (
+    Deployment, DaemonSet, Namespace,
+    PersistentVolume, PersistentVolumeClaim,
+    ReplicationController, Service
+)
+
+TYPE_TO_KIND = {}
+for resource in RESOURCE_CLASSES:
+    TYPE_TO_KIND[resource.url_type] = resource.__name__
+
+# inverse
+KIND_TO_TYPE = {}
+for kube_type in TYPE_TO_KIND:
+    KIND_TO_TYPE[TYPE_TO_KIND[kube_type]] = kube_type
+
+# backward compatibility
+
+class Kubectl(KubeUtils):
+    def __init__(self, context=None, namespace=None, dryrun=None):
+        super(Kubectl, self).__init__(context, namespace)
+
+    def create_namespace(self, namespace):
+        return Namespace(self).create(namespace)
+
+    def create_path(self, path_or_fn):
+        self.kubectl.create(
+            context=self.context,
+            namespace=self.namespace,
+            "-f {}".format(path_or_fn),
+            '--save-config'
+        )
+
+    def delete_path(self, path_or_fn):
+        self.kubectl.delete(
+            context=self.context,
+            namespace=self.namespace,
+            "-f {}".format(path_or_fn)
+        )
+
+    def create_if_missing(self, friendly_resource_type, glob_path):
+
+        cache = {}
+        for resource_fn in glob2.glob(glob_path):
+            with open(resource_fn) as handle:
+                resource_desc = bunch.Bunch.fromYAML(
+                    yaml.load(handle.read())
+                )
+
+            # is this a friendly_resource_type?
+            friendly_to_kind = {
+                'componentstatuses': 'ComponentStatus',
+                'cs': 'ComponentStatus',
+                'configmaps': 'ConfigMap',
+                'daemonsets': '',
+                'ds': '',
+                'deployments': '',
+                'events': 'Event',
+                'ev': 'Event',
+                'endpoints': '',
+                'ep': '',
+                'horizontalpodautoscalers': '',
+                'hpa': '',
+                'ingress': '',
+                'ing': '',
+                'jobs': '',
+                'limitranges': '',
+                'limits': '',
+                'nodes': '',
+                'no': '',
+                'namespaces': '',
+                'ns': '',
+                'pods': 'Pod',
+                'po': 'Pod',
+                'persistentvolumes': 'PersistentVolume'
+                'pv': 'PersistentVolume',
+                'persistentvolumeclaims': 'PersistentVolumeClaim',
+                'pvc': 'PersistentVolumeClaim',
+                'quota': '',
+                'resourcequotas': '',
+                'replicasets': '',
+                'rs': '',
+                'replicationcontrollers': '',
+                'rc': '',
+                'secrets': '',
+                'serviceaccounts': '',
+                'sa': '',
+                'services': 'Service',
+                'svc': 'Service',
+            }
+            if resource_desc.kind != friendly_to_kind[friendly_resource_type]:
+                continue
+
+            if resource_desc.kind not in cache:
+                resource_class = resource_by_kind(resource_desc.kind)
+                resource = resource_class(self)
+                cache[resource_desc.kind] = resource
+
+            if not cache[resource_desc.kind].exists(desc.metadata.name):
+                self.create_path(filename)
+
