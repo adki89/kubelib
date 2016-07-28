@@ -42,19 +42,41 @@
             
   <div class="section" id="kubelib">
 <h1>kubelib<a class="headerlink" href="#kubelib" title="Permalink to this headline">¶</a></h1>
-<p>Python library to simplify kubernetes scripting</p>
+<p>Python library to simplify kubernetes scripting.  Minimal test coverage.</p>
 <p><a class="reference external" href="http://public.safarilab.com/kubelib/">Full Documentation Here</a></p>
 <div class="section" id="quickstart">
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
-<p>List all namespaces:</p>
+<p>Import Kubelib and config:</p>
 <div class="highlight-default"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">kubelib</span>
-
-<span class="n">kube</span> <span class="o">=</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">Kubectl</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="s1">&#39;sfo-context&#39;</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">kube</span><span class="o">.</span><span class="n">get_namespaces</span><span class="p">():</span>
+<span class="n">kube</span> <span class="o">=</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">KubeConfig</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="s1">&#39;dev-seb&#39;</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="s1">&#39;myspace&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>List all namespaces:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">kube</span><span class="p">)</span><span class="o">.</span><span class="n">get_list</span><span class="p">():</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>List all resource controllers:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">ReplicationController</span><span class="p">(</span><span class="n">kube</span><span class="p">)</span><span class="o">.</span><span class="n">get_list</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(you get the idea)</p>
+<p>Get a specific pod:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">pod</span> <span class="o">=</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">Pod</span><span class="p">(</span><span class="n">kube</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">podname</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pod</span><span class="o">.</span><span class="n">toJSON</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="upgrading-kubernetes">
+<h2>Upgrading Kubernetes<a class="headerlink" href="#upgrading-kubernetes" title="Permalink to this headline">¶</a></h2>
+<p>Upgrade kubernetes based on a directory of yaml files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">kubelib</span>
+<span class="n">kube</span> <span class="o">=</span> <span class="n">kubelib</span><span class="o">.</span><span class="n">KubeConfig</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="s1">&#39;dev-seb&#39;</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="s1">&#39;myspace&#39;</span><span class="p">)</span>
+<span class="n">kube</span><span class="o">.</span><span class="n">apply_path</span><span class="p">(</span><span class="s2">&quot;./kubernetes&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will look at every yaml file and act based on the &#8220;Kind&#8221; field.  Deployments are replaced, replication controllers are deleted and re-created.  Other &#8220;Kind&#8221; resources are created if a resource with that &#8220;Kind&#8221; and &#8220;Name&#8221; is not already present.</p>
 <hr class="docutils" />
 <p>Initial package setup borrowed from <cite>https://github.com/kennethreitz/samplemod</cite></p>
 <p>A reasonable approach to getting sphinx output into github pages from <cite>https://daler.github.io/sphinxdoc-test/includeme.html</cite></p>
@@ -71,6 +93,7 @@
   <ul>
 <li><a class="reference internal" href="#">kubelib</a><ul>
 <li><a class="reference internal" href="#quickstart">Quickstart</a></li>
+<li><a class="reference internal" href="#upgrading-kubernetes">Upgrading Kubernetes</a></li>
 </ul>
 </li>
 </ul>
