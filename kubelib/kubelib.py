@@ -123,9 +123,10 @@ class KubeUtils(KubeConfig):
             if not resource_fn.endswith(('.yml', '.yaml')):
                 continue
 
-            with open(resource_fn) as handle:
+            with open(resource_fn, 'r') as handle:
+                resource_content = handle.read()
                 resource_desc = bunch.Bunch.fromYAML(
-                    yaml.load(handle.read())
+                    yaml.load(resource_content)
                 )
 
             if resource_desc.kind not in cache:
@@ -133,7 +134,7 @@ class KubeUtils(KubeConfig):
                 resource = resource_class(self)
                 cache[resource_desc.kind] = resource
 
-            cache[resource_desc.kind].apply(resource_desc)
+            cache[resource_desc.kind].apply(resource_desc, resource_fn)
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
         """Copy a file into the given pod.
@@ -199,9 +200,9 @@ class KubeUtils(KubeConfig):
                 LOG.info('Rebuilding PV %s', pv.metadata['name'])
                 self.kubectl.delete.pv(pv.metadata.name, context=self.context)
                 self.kubectl.create(
+                    "--save-config",
                     context=self.context,
                     _in=pv.toYAML(),
-                    "--save-config"
                 )
 
 class Kubernetes(object):
@@ -235,14 +236,14 @@ class ResourceBase(Kubernetes):
     single_uri = "/namespaces/{namespace}/{resource_type}/{name}"
 
     def get_list(self):
-        resources = bunch.bunchify(
-            self._get(
-                self.list_uri.format(
-                    namespace=self.config.namespace,
-                    resource_type=self.url_type
-                )
-            )
+        url = self.list_uri.format(
+            namespace=self.config.namespace,
+            resource_type=self.url_type
         )
+        resources = bunch.bunchify(
+            self._get(url)
+        )
+        LOG.debug('get_list resources: %r', resources)
         return resources.get("items", [])
 
     def get(self, name):
@@ -282,8 +283,8 @@ class ActorBase(ResourceBase):
         """
         self.kubectl.replace(
             '-f', path_or_fn,
-            '--namespace={}'.format(self.namespace),
-            '--context={}'.format(self.context)
+            '--namespace={}'.format(self.config.namespace),
+            '--context={}'.format(self.config.context)
         )
 
     def create_path(self, path_or_fn):
@@ -293,8 +294,8 @@ class ActorBase(ResourceBase):
         """
         self.kubectl.create(
             '-f', path_or_fn,
-            '--namespace={}'.format(self.namespace),
-            '--context={}'.format(self.context),
+            '--namespace={}'.format(self.config.namespace),
+            '--context={}'.format(self.config.context),
             '--save-config'
         )
 
@@ -306,8 +307,8 @@ class ActorBase(ResourceBase):
         try:
             self.kubectl.delete(
                 '-f', path_or_fn,
-                '--namespace={}'.format(self.namespace),
-                '--context={}'.format(self.context)
+                '--namespace={}'.format(self.config.namespace),
+                '--context={}'.format(self.config.context)
             )
         except sh.ErrorReturnCode:
             return False
@@ -318,7 +319,8 @@ class ActorBase(ResourceBase):
 
     def exists(self, name, force_reload=False):
         """Does resource 'name' exist in kubes?"""
-        if self.cache is None or force:
+        if self.cache is None or force_reload:
+            self.cache = {}
             res_list = self.get_list()
             for res in res_list:
                 self.cache[res.metadata.name] = res
@@ -371,8 +373,6 @@ class Namespace(CreateIfMissingActor):
         :param namespace: name of the namespace we want to create
         :returns: True if the create succeeded, False otherwise (it already exists)
         """
-        self.namespace = namespace
-
         response = self._post(
             "/namespaces",
             data={
@@ -481,7 +481,7 @@ class Policy(CreateIfMissingActor):
     api_base = "abac.authorization.kubernetes.io/v1beta1"
 
 class ReplicationController(DeleteCreateActor):
-    url_type = "rc"
+    url_type = "replicationcontrollers"
 
 class Role(CreateIfMissingActor):
     url_type = "role"
@@ -500,7 +500,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
 class Service(CreateIfMissingActor):
-    url_type = "service"
+    url_type = "services"
 
 class Secret(CreateIfMissingActor):
     url_type = "secret"
@@ -512,7 +512,7 @@ class Secret(CreateIfMissingActor):
 
         response = self._post(
             "/namespaces/{namespace}/secrets".format(
-                namespace=self.namespace
+                namespace=self.config.namespace
             ),
             data={
                 "kind": "Secret",
@@ -628,17 +628,17 @@ class Kubectl(KubeUtils):
 
     def create_path(self, path_or_fn):
         self.kubectl.create(
-            context=self.context,
-            namespace=self.namespace,
+            '--save-config',
             "-f {}".format(path_or_fn),
-            '--save-config'
+            context=self.config.context,
+            namespace=self.config.namespace
         )
 
     def delete_path(self, path_or_fn):
         self.kubectl.delete(
-            context=self.context,
-            namespace=self.namespace,
-            "-f {}".format(path_or_fn)
+            "-f {}".format(path_or_fn),
+            context=self.config.context,
+            namespace=self.config.namespace
         )
 
     def create_if_missing(self, friendly_resource_type, glob_path):
@@ -675,7 +675,7 @@ class Kubectl(KubeUtils):
                 'ns': '',
                 'pods': 'Pod',
                 'po': 'Pod',
-                'persistentvolumes': 'PersistentVolume'
+                'persistentvolumes': 'PersistentVolume',
                 'pv': 'PersistentVolume',
                 'persistentvolumeclaims': 'PersistentVolumeClaim',
                 'pvc': 'PersistentVolumeClaim',
