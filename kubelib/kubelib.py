@@ -126,7 +126,7 @@ class KubeUtils(KubeConfig):
             with open(resource_fn, 'r') as handle:
                 resource_content = handle.read()
                 resource_desc = bunch.Bunch.fromYAML(
-                    yaml.load(resource_content)
+                    resource_content
                 )
 
             if resource_desc.kind not in cache:
