@@ -243,7 +243,7 @@ class ResourceBase(Kubernetes):
         resources = bunch.bunchify(
             self._get(url)
         )
-        LOG.debug('get_list resources: %r', resources)
+        # LOG.debug('get_list resources: %r', resources)
         return resources.get("items", [])
 
     def get(self, name):
