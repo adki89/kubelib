@@ -1,9 +1,7 @@
 Kubelib
 *******
 
-kubelib is primarily a wrapper around the kubernetes kubectl command.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.
-
-Most functions require a context and namespace.  If you have defaults set these will be used if values are not provided.  In practice I highly recommend explicitely providing both context and namespace.
+kubelib both wraps kubectl and make direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.
 
 This module makes use of the "bunch" python module for object return values.
 
@@ -14,5 +12,20 @@ tldr: you can use them as dictionaries (ala pod['metadata']['name']) or with att
 
 .. automodule:: kubelib
 
-	.. autoclass:: kubelib.Kubectl
-		:member-order: groupwise
+    .. autoclass:: kubelib.Kubectl
+        :member-order: groupwise
+
+    .. autoclass:: kubelib.KubeUtils
+        :member-order: groupwise
+
+    .. autoclass:: kubelib.Deployment
+        :member-order: groupwise
+
+    .. autoclass:: kubelib.DaemonSet
+        :member-order: groupwise
+
+    .. autoclass:: kubelib.Namespace
+        :member-order: groupwise
+
+    .. autoclass:: kubelib.Node
+        :member-order: groupwise
