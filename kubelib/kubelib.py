@@ -29,28 +29,29 @@ class ClusterNotFound(KubeError):
     """Probably a bad ~/.kube/config"""
 
 class KubeConfig(object):
-    config = None
-    context = None
-    namespace = None
-    cluster = None
-    context_obj = None
 
     def __init__(self, context=None, namespace=None):
-        """Create new KubeConfig object.
+        """Create a new KubeConfig object.  This holds all
+        the config information needed to communicate with
+        a particular kubernetes cluster.
 
-        :param context: Kubernetes context for this object
-        :param namespace: Kubernetes namespace, defaults to the current default
+        :param context: Kubernetes context
+        :param namespace: Kubernetes namespace
         """
+        self.config = None
         with open(os.path.expanduser("~/.kube/config")) as handle:
             self.config = bunch.Bunch.fromYAML(
                 handle.read()
             )
 
+        self.context = None
         self.set_context(context)
 
         #if namespace is None:
         # default to the current kubectl namespace
         cluster_name = None
+
+        self.context_obj = None
         for context_obj in self.config.contexts:
             if context_obj.name == self.context:
                 self.context_obj = context_obj
@@ -58,6 +59,7 @@ class KubeConfig(object):
         if self.context_obj is None:
             raise ContextRequired('Context %r not found' % self.context)
 
+        self.namespace = None
         self.set_namespace(namespace)
 
         cluster_name = self.context_obj.context.cluster
@@ -66,6 +68,7 @@ class KubeConfig(object):
         if cluster_name is None:
             raise ClusterNotFound('Context %r has no cluster' % context)
 
+        self.cluster = None
         for cluster in self.config.clusters:
             if cluster.name == cluster_name:
                 self.cluster = cluster.cluster
@@ -93,6 +96,14 @@ class KubeConfig(object):
         )
 
     def set_context(self, context=None):
+        """Set the current context.  This is generally
+        done during initialization.
+
+        Passing *None* will detect and utilize the current
+        default kubectl context.
+
+        :param context: Context to use
+        """
         if context is None:
             # default to the current context
             context = self.config['current-context']
@@ -100,14 +111,31 @@ class KubeConfig(object):
         self.context = context
 
     def set_namespace(self, namespace=None):
+        """Set the current namespace.  This is generally
+        done during initialization.
+
+        Passing *None* will detect and utilize the current
+        default kubectl namespace for this context.
+
+        :param namespace: Namespace to use
+        """
         if namespace is None:
             namespace = self.context_obj.context.get('namespace')
 
         self.namespace = namespace
 
 class KubeUtils(KubeConfig):
+    """Child of KubeConfig with some helper functions attached"""
 
     def apply_path(self, path, recursive=False):
+        """Apply all the yml or yaml resource files in the given
+        directory to the current context/namespace.  Exactly what
+        apply means depends on the resource type.
+
+        :param path: Directory of yaml resources
+        :param recursive: True to recurse into subdirectories
+        """
+        path.rstrip('/')
 
         if recursive:
             path += "/**/*"
@@ -144,8 +172,10 @@ class KubeUtils(KubeConfig):
         You need to have passwordless ssh access to the node and
         be a member of the docker group there.
 
+        TODO: add container parameter
+
         :param source_fn: path and filename you want to copy
-        :param container: pod name you want to copy the file into
+        :param pod: Pod name
         :param destination_fn: path and filename to place it (path must exist)
         """
         success = False
@@ -193,7 +223,8 @@ class KubeUtils(KubeConfig):
 
     def clean_volumes(self):
         """Delete and rebuild any persistent volume in a released
-        or failed state.
+        or failed state.  Note: this Persistent Volumes are *not*
+        contained by namespace so this is a whole-context operation.
         """
         for pv in PersistentVolume(self).get_list():
             if pv.status.phase in ['Released', 'Failed']:
@@ -206,6 +237,9 @@ class KubeUtils(KubeConfig):
                 )
 
 class Kubernetes(object):
+    """Base class for communicating with Kubernetes.  Provides
+    both HTTP and a kubectl command line wrapper.
+    """
     api_base = "/api/v1"
 
     def __init__(self, kubeconfig):
@@ -231,11 +265,16 @@ class Kubernetes(object):
         return response.json()
 
 class ResourceBase(Kubernetes):
+    """Base class for particular kinds of kubernetes resources.
+    """
     url_type = None
     list_uri = "/namespaces/{namespace}/{resource_type}"
     single_uri = "/namespaces/{namespace}/{resource_type}/{name}"
 
     def get_list(self):
+        """Retrieve a list of bunch objects describing all
+        the resources of this type in this namespace/context
+        """
         url = self.list_uri.format(
             namespace=self.config.namespace,
             resource_type=self.url_type
@@ -247,6 +286,9 @@ class ResourceBase(Kubernetes):
         return resources.get("items", [])
 
     def get(self, name):
+        """Retrieve a single bunch object describing one
+        resource by name
+        """
         return bunch.bunchify(
             self._get(self.api_base, self.single_uri.format(
                 namespace=self.config.namespace,
@@ -258,7 +300,7 @@ class ResourceBase(Kubernetes):
     def delete(self, name):
         """delete the named resource
 
-        TODO: should be able to rewrite this as a kube api
+        TODO: should be easy to rewrite this as a kube api
         delete call instead of going through kubectl.
         """
 
@@ -273,6 +315,10 @@ class ResourceBase(Kubernetes):
             logging.error("Unexpected response: %r", err)
 
 class ActorBase(ResourceBase):
+    """Base class for the Actors (the things that actually *do* stuff).
+    Different kubernetes resource types need to be manage a bit
+    differently.  The Actor sub-classes contain those differences.
+    """
     aliases = []
     cache = None
 
@@ -315,10 +361,20 @@ class ActorBase(ResourceBase):
         return True
 
     def apply(self, desc, filename):
+        """NOOP Placeholder to be overridden by Actor
+        sub-classes.
+
+        :param desc: Bunch resource object
+        :param filename: Filename associated with the resource
+        """
         return
 
     def exists(self, name, force_reload=False):
-        """Does resource 'name' exist in kubes?"""
+        """returns True if *name* exist in kubes
+
+        :param name: Name of the resource we are interest in
+        :param force_reload: Force a fresh cope of inventory (bypass cache)
+        """
         if self.cache is None or force_reload:
             self.cache = {}
             res_list = self.get_list()
@@ -328,14 +384,14 @@ class ActorBase(ResourceBase):
         return name in self.cache
 
 class DeleteCreateActor(ActorBase):
-    """Delete this resource and re-create it"""
+    """Delete the resource and re-create it"""
     def apply(self, desc, filename):
         if self.exists(desc.metadata.name):
             self.delete_path(filename)
         self.create_path(filename)
 
 class ReplaceActor(ActorBase):
-    """Do a kubectl replace on this object"""
+    """Do a *kubectl replace* on this object"""
     def apply(self, desc, filename):
         if self.exists(desc.metadata.name):
             self.replace_path(filename)
@@ -343,7 +399,7 @@ class ReplaceActor(ActorBase):
             self.create_path(filename)
 
 class CreateIfMissingActor(ActorBase):
-    """Create only if missing"""
+    """Create only if the resource is missing"""
     def apply(self, desc, filename):
         if not self.exists(desc.metadata.name):
             self.create_path(filename)
@@ -354,14 +410,27 @@ class IgnoreActor(ActorBase):
 ########################################
 
 class Deployment(ReplaceActor):
+    """A Deployment provides declarative updates for Pods and
+    Replica Sets (the next-generation Replication Controller).
+    You only need to describe the desired state in a Deployment
+    object, and the Deployment controller will change the actual
+    state to the desired state at a controlled rate for you. You
+    can define Deployments to create new resources, or replace
+    existing ones by new ones."""
     url_type = 'deployments'
     api_base = "/apis/extensions/v1beta1"
 
 class DaemonSet(ReplaceActor):
+    """A Daemon Set ensures that all (or some) nodes run a copy of a
+    pod. As nodes are added to the cluster, pods are added to them. As
+    nodes are removed from the cluster, those pods are garbage collected.
+    Deleting a Daemon Set will clean up the pods it created."""
     url_type = "daemonsets"
     api_base = "/apis/extensions/v1beta1"
 
 class Namespace(CreateIfMissingActor):
+    """Kubernetes supports multiple virtual clusters backed by the same
+    physical cluster. These virtual clusters are called namespaces."""
     url_type = "namespaces"
     aliases = ['ns']
     list_uri = "/{resource_type}"
@@ -404,20 +473,46 @@ class Namespace(CreateIfMissingActor):
         return response
 
 class Node(IgnoreActor):
+    """Node is a worker machine in Kubernetes, previously known as Minion.
+    Node may be a VM or physical machine, depending on the cluster. Each
+    node has the services necessary to run Pods and is managed by the
+    master components. The services on a node include docker, kubelet
+    and network proxy. See The Kubernetes Node section in the architecture
+    design doc for more details."""
+
     url_type = "nodes"
     aliases = ['node']
 
 class PersistentVolume(CreateIfMissingActor):
+    """A PersistentVolume (PV) is a piece of networked storage in the cluster
+    that has been provisioned by an administrator. It is a resource in the
+    cluster just like a node is a cluster resource. PVs are volume plugins
+    like Volumes, but have a lifecycle independent of any individual pod that
+    uses the PV. This API object captures the details of the implementation of
+    the storage, be that NFS, iSCSI, or a cloud-provider-specific storage
+    system."""
     url_type = "persistentvolumes"
     aliases = ['pv']
     list_uri = "/{resource_type}"
     single_uri = "/{resource_type}/{name}"
 
 class PersistentVolumeClaim(CreateIfMissingActor):
+    """A PersistentVolumeClaim (PVC) is a request for storage by a user. It
+    is similar to a pod. Pods consume node resources and PVCs consume PV
+    resources. Pods can request specific levels of resources (CPU and Memory).
+    Claims can request specific size and access modes (e.g, can be mounted once
+    read/write or many times read-only)."""
     url_type = "persistentvolumeclaims"
     aliases = ['pvc']
 
 class Pod(IgnoreActor):
+    """A pod (as in a pod of whales or pea pod) is a group of one or more
+    containers (such as Docker containers), the shared storage for those
+    containers, and options about how to run the containers. Pods are always
+    co-located and co-scheduled, and run in a shared context. A pod models an
+    application-specific "logical host" - it contains one or more application
+    containers which are relatively tightly coupled - in a pre-container world,
+    they would have executed on the same physical or virtual machine."""
     url_type = "pods"
     aliases = ['pod']
 
@@ -476,33 +571,74 @@ class Pod(IgnoreActor):
                 '--', *command
             )
 
-class Policy(CreateIfMissingActor):
-    url_type = "policy"
-    api_base = "abac.authorization.kubernetes.io/v1beta1"
+# class Policy(CreateIfMissingActor):
+#     url_type = "policy"
+#     api_base = "abac.authorization.kubernetes.io/v1beta1"
 
 class ReplicationController(DeleteCreateActor):
+    """A replication controller ensures that a specified number of pod "replicas" are
+    running at any one time. In other words, a replication controller makes sure that
+    a pod or homogeneous set of pods are always up and available. If there are too many
+    pods, it will kill some. If there are too few, the replication controller will start
+    more. Unlike manually created pods, the pods maintained by a replication controller
+    are automatically replaced if they fail, get deleted, or are terminated. For example,
+    your pods get re-created on a node after disruptive maintenance such as a kernel
+    upgrade. For this reason, we recommend that you use a replication controller even if
+    your application requires only a single pod. You can think of a replication controller
+    as something similar to a process supervisor, but rather than individual processes on
+    a single node, the replication controller supervises multiple pods across multiple
+    nodes."""
     url_type = "replicationcontrollers"
 
 class Role(CreateIfMissingActor):
+    """roles hold a logical grouping of permissions. These permissions map very closely to
+    ABAC policies, but only contain information about requests being made. Permission are
+    purely additive, rules may only omit permissions they do not wish to grant."""
     url_type = "role"
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
 class ClusterRole(CreateIfMissingActor):
+    """ClusterRoles hold the same information as a Role but can apply to any namespace as
+    well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)"""
     url_type = "clusterrole"
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
 class RoleBinding(CreateIfMissingActor):
+    """RoleBindings perform the task of granting the permission to a user or set of users.
+    They hold a list of subjects which they apply to, and a reference to the Role being
+    assigned.
+
+    RoleBindings may also refer to a ClusterRole. However, a RoleBinding that refers to a
+    ClusterRole only applies in the RoleBinding’s namespace, not at the cluster level. This
+    allows admins to define a set of common roles for the entire cluster, then reuse them
+    in multiple namespaces.
+    """
     url_type = "rolebinding"
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
 class ClusterRoleBinding(CreateIfMissingActor):
+    """A ClusterRoleBinding may be used to grant permissions in all namespaces."""
     url_type = "clusterrolebinding"
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
 class Service(CreateIfMissingActor):
+    """Kubernetes Pods are mortal. They are born and they die, and they
+    are not resurrected. ReplicationControllers in particular create and
+    destroy Pods dynamically (e.g. when scaling up or down or when doing
+    rolling updates). While each Pod gets its own IP address, even those
+    IP addresses cannot be relied upon to be stable over time. This leads
+    to a problem: if some set of Pods (let's call them backends) provides
+    functionality to other Pods (let's call them frontends) inside the
+    Kubernetes cluster, how do those frontends find out and keep track of
+    which backends are in that set?"""
     url_type = "services"
 
 class Secret(CreateIfMissingActor):
+    """Objects of type secret are intended to hold sensitive information,
+    such as passwords, OAuth tokens, and ssh keys. Putting this information
+    in a secret is safer and more flexible than putting it verbatim in a
+    pod definition or in a docker image. See Secrets design document for
+    more information."""
     url_type = "secret"
 
     def create(self, name, dict_of_secrets):
@@ -542,6 +678,15 @@ def apply_path(
     namespace=None,
     recursive=True
 ):
+    """Apply all the yml or yaml resource files in the given
+    directory to the given context/namespace.  Exactly what
+    apply means depends on the resource type.
+
+    :param context: Kubernetes context
+    :param namespace: Kubernetes namespace
+    :param path: Directory of yaml resources
+    :param recursive: True to recurse into subdirectories
+    """
     config = KubeUtils(context=context, namespace=namespace)
 
     config.apply_path(
@@ -552,11 +697,27 @@ def delete_by_type(resource_type, context, namespace):
     """loop through and destroy all resources of the given type.
 
     :param resource_type: resource type (Service, Pod, etc..)
+    :param context: Kubernetes context
+    :param namespace: Kubernetes namespace
     """
     config = KubeUtils(context=context, namespace=namespace)
     config.delete_by_type(resource_type)
 
 def copy_to_pod(source_fn, pod, destination_fn, context, namespace):
+    """Copy a file into the given pod.
+
+    This can be handy for dropping files into a pod for testing.
+
+    You need to have passwordless ssh access to the node and
+    be a member of the docker group there.
+
+    TODO: add container parameter
+
+    :param source_fn: path and filename you want to copy
+    :param pod: Pod name
+    :param destination_fn: path and filename to place it (path must exist)
+
+    """
     config = KubeUtils(context=context, namespace=namespace)
     return config.copy_to_pod(source_fn, pod, destination_fn)
 
@@ -603,9 +764,11 @@ def reimage(filename, xpath, newvalue, save_to=None):
     return yml
 
 RESOURCE_CLASSES = (
-    Deployment, DaemonSet, Namespace,
+    Deployment, DaemonSet, Namespace, Node,
     PersistentVolume, PersistentVolumeClaim,
-    ReplicationController, Service
+    Pod, Policy, ReplicationController,
+    Role, ClusterRole, RoleBinding,
+    ClusterRoleBinding, Service, Secret
 )
 
 TYPE_TO_KIND = {}
@@ -617,9 +780,11 @@ KIND_TO_TYPE = {}
 for kube_type in TYPE_TO_KIND:
     KIND_TO_TYPE[TYPE_TO_KIND[kube_type]] = kube_type
 
-# backward compatibility
 
 class Kubectl(KubeUtils):
+    """Backward compatibility shim.  Don't use this for new
+    projects.
+    """
     def __init__(self, context=None, namespace=None, dryrun=None):
         super(Kubectl, self).__init__(context, namespace)
 
