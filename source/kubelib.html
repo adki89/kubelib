@@ -45,7 +45,10 @@
 <p>This module makes use of the &#8220;bunch&#8221; python module for object return values.</p>
 <p><a class="reference external" href="https://github.com/dsc/bunch">https://github.com/dsc/bunch</a></p>
 <p>tldr: you can use them as dictionaries (ala pod[&#8216;metadata&#8217;][&#8216;name&#8217;]) or with attributes (ala pod.metadata.name).  I think this makes code with deeply nested dictionaries easier to read.</p>
-<span class="target" id="module-kubelib"></span><dl class="class">
+<span class="target" id="module-kubelib"></span><div class="section" id="kubectl">
+<h2>Kubectl<a class="headerlink" href="#kubectl" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.Kubectl">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Kubectl</code><span class="sig-paren">(</span><em>context=None</em>, <em>namespace=None</em>, <em>dryrun=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.KubeUtils</span></code></p>
@@ -154,7 +157,70 @@ be a member of the docker group there.</p>
 
 </dd></dl>
 
-<dl class="class">
+</div></blockquote>
+</div>
+<div class="section" id="kubeconfig">
+<h2>KubeConfig<a class="headerlink" href="#kubeconfig" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.KubeConfig">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">KubeConfig</code><span class="sig-paren">(</span><em>context=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Create new KubeConfig object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params context:</th><td class="field-body">Kubernetes context for this object</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Params namespace:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Kubernetes namespace, defaults to the current default</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="kubelib.KubeConfig.set_context">
+<code class="descname">set_context</code><span class="sig-paren">(</span><em>context=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeConfig.set_context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.KubeConfig.set_namespace">
+<code class="descname">set_namespace</code><span class="sig-paren">(</span><em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeConfig.set_namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.KubeConfig.cluster">
+<code class="descname">cluster</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.KubeConfig.cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.KubeConfig.config">
+<code class="descname">config</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.KubeConfig.config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.KubeConfig.context">
+<code class="descname">context</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.KubeConfig.context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.KubeConfig.context_obj">
+<code class="descname">context_obj</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.KubeConfig.context_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.KubeConfig.namespace">
+<code class="descname">namespace</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.KubeConfig.namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="kubeutils">
+<h2>KubeUtils<a class="headerlink" href="#kubeutils" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.KubeUtils">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">KubeUtils</code><span class="sig-paren">(</span><em>context=None</em>, <em>namespace=None</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeUtils" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.KubeConfig</span></code></p>
@@ -255,25 +321,17 @@ be a member of the docker group there.</p>
 
 </dd></dl>
 
-<dl class="class">
+</div></blockquote>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="deployment">
+<h3>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.Deployment">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Deployment</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.ReplaceActor</span></code></p>
-<dl class="method">
-<dt id="kubelib.Deployment._delete">
-<code class="descname">_delete</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment._delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Deployment._get">
-<code class="descname">_get</code><span class="sig-paren">(</span><em>url</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment._get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Deployment._post">
-<code class="descname">_post</code><span class="sig-paren">(</span><em>url</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment._post" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="kubelib.Deployment.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.apply" title="Permalink to this definition">¶</a></dt>
@@ -377,25 +435,15 @@ delete call instead of going through kubectl.</p>
 
 </dd></dl>
 
-<dl class="class">
+</div></blockquote>
+</div>
+<div class="section" id="daemonset">
+<h3>DaemonSet<a class="headerlink" href="#daemonset" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.DaemonSet">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">DaemonSet</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.ReplaceActor</span></code></p>
-<dl class="method">
-<dt id="kubelib.DaemonSet._delete">
-<code class="descname">_delete</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet._delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.DaemonSet._get">
-<code class="descname">_get</code><span class="sig-paren">(</span><em>url</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet._get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.DaemonSet._post">
-<code class="descname">_post</code><span class="sig-paren">(</span><em>url</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet._post" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="kubelib.DaemonSet.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.apply" title="Permalink to this definition">¶</a></dt>
@@ -499,25 +547,15 @@ delete call instead of going through kubectl.</p>
 
 </dd></dl>
 
-<dl class="class">
+</div></blockquote>
+</div>
+<div class="section" id="namespace">
+<h3>Namespace<a class="headerlink" href="#namespace" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.Namespace">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Namespace</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
-<dl class="method">
-<dt id="kubelib.Namespace._delete">
-<code class="descname">_delete</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace._delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Namespace._get">
-<code class="descname">_get</code><span class="sig-paren">(</span><em>url</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace._get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Namespace._post">
-<code class="descname">_post</code><span class="sig-paren">(</span><em>url</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace._post" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="kubelib.Namespace.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.apply" title="Permalink to this definition">¶</a></dt>
@@ -643,25 +681,15 @@ delete call instead of going through kubectl.</p>
 
 </dd></dl>
 
-<dl class="class">
+</div></blockquote>
+</div>
+<div class="section" id="node">
+<h3>Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
 <dt id="kubelib.Node">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.IgnoreActor</span></code></p>
-<dl class="method">
-<dt id="kubelib.Node._delete">
-<code class="descname">_delete</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node._delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Node._get">
-<code class="descname">_get</code><span class="sig-paren">(</span><em>url</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node._get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="kubelib.Node._post">
-<code class="descname">_post</code><span class="sig-paren">(</span><em>url</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node._post" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="kubelib.Node.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.apply" title="Permalink to this definition">¶</a></dt>
@@ -765,6 +793,1284 @@ delete call instead of going through kubectl.</p>
 
 </dd></dl>
 
+</div></blockquote>
+</div>
+<div class="section" id="persistentvolume">
+<h3>PersistentVolume<a class="headerlink" href="#persistentvolume" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.PersistentVolume">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">PersistentVolume</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.PersistentVolume.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.aliases">
+<code class="descname">aliases</code><em class="property"> = ['pv']</em><a class="headerlink" href="#kubelib.PersistentVolume.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.PersistentVolume.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.PersistentVolume.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.PersistentVolume.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.PersistentVolume.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.url_type">
+<code class="descname">url_type</code><em class="property"> = 'persistentvolumes'</em><a class="headerlink" href="#kubelib.PersistentVolume.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="persistentvolumeclaim">
+<h3>PersistentVolumeClaim<a class="headerlink" href="#persistentvolumeclaim" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.PersistentVolumeClaim">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">PersistentVolumeClaim</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.aliases">
+<code class="descname">aliases</code><em class="property"> = ['pvc']</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.url_type">
+<code class="descname">url_type</code><em class="property"> = 'persistentvolumeclaims'</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="pod">
+<h3>Pod<a class="headerlink" href="#pod" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.Pod">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Pod</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.IgnoreActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.Pod.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.exec_cmd">
+<code class="descname">exec_cmd</code><span class="sig-paren">(</span><em>pod</em>, <em>container</em>, <em>*command</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.exec_cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a command in a pod/container.  If container is None
+the kubectl behavior is to pick the first container if possible</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.wait_for_pod">
+<code class="descname">wait_for_pod</code><span class="sig-paren">(</span><em>pod_name</em>, <em>max_delay=300</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.wait_for_pod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block until the given pod is running.</p>
+<p>Returns the full unique pod name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pod_name</strong> &#8211; Pod name (without unique suffix)</li>
+<li><strong>max_delay</strong> &#8211; Maximum number of seconds to wait</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Unique pod name</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>TimeOut</strong> &#8211; When max_delay is exceeded</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.aliases">
+<code class="descname">aliases</code><em class="property"> = ['pod']</em><a class="headerlink" href="#kubelib.Pod.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.Pod.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Pod.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Pod.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Pod.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Pod.url_type">
+<code class="descname">url_type</code><em class="property"> = 'pods'</em><a class="headerlink" href="#kubelib.Pod.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="replicationcontroller">
+<h3>ReplicationController<a class="headerlink" href="#replicationcontroller" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.ReplicationController">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">ReplicationController</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.DeleteCreateActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.ReplicationController.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.ReplicationController.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.ReplicationController.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.ReplicationController.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ReplicationController.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.ReplicationController.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.url_type">
+<code class="descname">url_type</code><em class="property"> = 'replicationcontrollers'</em><a class="headerlink" href="#kubelib.ReplicationController.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="service">
+<h3>Service<a class="headerlink" href="#service" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.Service">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Service</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.Service.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.Service.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.Service.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Service.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Service.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Service.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.url_type">
+<code class="descname">url_type</code><em class="property"> = 'services'</em><a class="headerlink" href="#kubelib.Service.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="secret">
+<h3>Secret<a class="headerlink" href="#secret" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.Secret">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Secret</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.Secret.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>name</em>, <em>dict_of_secrets</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.Secret.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.api_base">
+<code class="descname">api_base</code><em class="property"> = '/api/v1'</em><a class="headerlink" href="#kubelib.Secret.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Secret.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Secret.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Secret.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Secret.url_type">
+<code class="descname">url_type</code><em class="property"> = 'secret'</em><a class="headerlink" href="#kubelib.Secret.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="attribute-based-access-control-abac">
+<h2>Attribute Based Access Control (ABAC)<a class="headerlink" href="#attribute-based-access-control-abac" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="policy">
+<h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.Policy">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Policy</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.Policy.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Policy.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Policy.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.Policy.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.api_base">
+<code class="descname">api_base</code><em class="property"> = 'abac.authorization.kubernetes.io/v1beta1'</em><a class="headerlink" href="#kubelib.Policy.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Policy.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Policy.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Policy.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Policy.url_type">
+<code class="descname">url_type</code><em class="property"> = 'policy'</em><a class="headerlink" href="#kubelib.Policy.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="role-based-access-control-rbac">
+<h2>Role Based Access Control (RBAC)<a class="headerlink" href="#role-based-access-control-rbac" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="role">
+<h3>Role<a class="headerlink" href="#role" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.Role">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Role</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.Role.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.Role.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.api_base">
+<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.Role.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.Role.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Role.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Role.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.url_type">
+<code class="descname">url_type</code><em class="property"> = 'role'</em><a class="headerlink" href="#kubelib.Role.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="clusterrole">
+<h3>ClusterRole<a class="headerlink" href="#clusterrole" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.ClusterRole">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">ClusterRole</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.ClusterRole.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.ClusterRole.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.api_base">
+<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRole.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.ClusterRole.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRole.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.ClusterRole.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.url_type">
+<code class="descname">url_type</code><em class="property"> = 'clusterrole'</em><a class="headerlink" href="#kubelib.ClusterRole.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="rolebinding">
+<h3>RoleBinding<a class="headerlink" href="#rolebinding" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.RoleBinding">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">RoleBinding</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.RoleBinding.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.RoleBinding.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.api_base">
+<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.RoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.RoleBinding.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.RoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.RoleBinding.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.url_type">
+<code class="descname">url_type</code><em class="property"> = 'rolebinding'</em><a class="headerlink" href="#kubelib.RoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="clusterrolebinding">
+<h3>ClusterRoleBinding<a class="headerlink" href="#clusterrolebinding" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="class">
+<dt id="kubelib.ClusterRoleBinding">
+<em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">ClusterRoleBinding</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.create_path">
+<code class="descname">create_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.create_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl create wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete the named resource</p>
+<p>TODO: should be able to rewrite this as a kube api
+delete call instead of going through kubectl.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.delete_path">
+<code class="descname">delete_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.delete_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl delete wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>name</em>, <em>force_reload=False</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does resource &#8216;name&#8217; exist in kubes?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.get_list">
+<code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.get_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.replace_path">
+<code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.replace_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl replace wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.aliases">
+<code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.aliases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.api_base">
+<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.list_uri">
+<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.single_uri">
+<code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.single_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.url_type">
+<code class="descname">url_type</code><em class="property"> = 'clusterrolebinding'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
 </div>
 
 
@@ -772,7 +2078,41 @@ delete call instead of going through kubectl.</p>
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Kubelib</a><ul>
+<li><a class="reference internal" href="#kubectl">Kubectl</a></li>
+<li><a class="reference internal" href="#kubeconfig">KubeConfig</a></li>
+<li><a class="reference internal" href="#kubeutils">KubeUtils</a></li>
+<li><a class="reference internal" href="#resources">Resources</a><ul>
+<li><a class="reference internal" href="#deployment">Deployment</a></li>
+<li><a class="reference internal" href="#daemonset">DaemonSet</a></li>
+<li><a class="reference internal" href="#namespace">Namespace</a></li>
+<li><a class="reference internal" href="#node">Node</a></li>
+<li><a class="reference internal" href="#persistentvolume">PersistentVolume</a></li>
+<li><a class="reference internal" href="#persistentvolumeclaim">PersistentVolumeClaim</a></li>
+<li><a class="reference internal" href="#pod">Pod</a></li>
+<li><a class="reference internal" href="#replicationcontroller">ReplicationController</a></li>
+<li><a class="reference internal" href="#service">Service</a></li>
+<li><a class="reference internal" href="#secret">Secret</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#attribute-based-access-control-abac">Attribute Based Access Control (ABAC)</a><ul>
+<li><a class="reference internal" href="#policy">Policy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#role-based-access-control-rbac">Role Based Access Control (RBAC)</a><ul>
+<li><a class="reference internal" href="#role">Role</a></li>
+<li><a class="reference internal" href="#clusterrole">ClusterRole</a></li>
+<li><a class="reference internal" href="#rolebinding">RoleBinding</a></li>
+<li><a class="reference internal" href="#clusterrolebinding">ClusterRoleBinding</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
