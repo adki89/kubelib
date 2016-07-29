@@ -409,6 +409,15 @@ class IgnoreActor(ActorBase):
 
 ########################################
 
+class ConfigMap(ReplaceActor):
+    """The ConfigMap API resource holds key-value pairs of configuration
+    data that can be consumed in pods or used to store configuration data
+    for system components such as controllers. ConfigMap is similar to
+    Secrets, but designed to more conveniently support working with
+    strings that do not contain sensitive information."""
+    url_type = 'configmap'
+
+
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
@@ -764,6 +773,7 @@ def reimage(filename, xpath, newvalue, save_to=None):
     return yml
 
 RESOURCE_CLASSES = (
+    ConfigMap,
     Deployment, DaemonSet, Namespace, Node,
     PersistentVolume, PersistentVolumeClaim,
     Pod, ReplicationController,

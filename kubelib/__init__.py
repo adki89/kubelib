@@ -5,6 +5,7 @@ from .kubelib import (
     reimage,
     Kubernetes,
 
+    ConfigMap,
     Deployment,
     DaemonSet,
     Namespace,
