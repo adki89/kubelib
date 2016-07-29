@@ -31,6 +31,12 @@ KubeUtils
     .. autoclass:: kubelib.KubeUtils
         :member-order: groupwise
 
+Kuberentes
+----------
+
+    .. autoclass:: kubelib.Kubernetes
+        :member-order: groupwise
+
 Resources
 ---------
 
@@ -94,15 +100,6 @@ Secret
     .. autoclass:: kubelib.Secret
         :member-order: groupwise
 
-
-Attribute Based Access Control (ABAC)
--------------------------------------
-
-Policy
-^^^^^^
-
-    .. autoclass:: kubelib.Policy
-        :member-order: groupwise
 
 Role Based Access Control (RBAC)
 --------------------------------
