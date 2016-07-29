@@ -609,7 +609,7 @@ class RoleBinding(CreateIfMissingActor):
     assigned.
 
     RoleBindings may also refer to a ClusterRole. However, a RoleBinding that refers to a
-    ClusterRole only applies in the RoleBinding’s namespace, not at the cluster level. This
+    ClusterRole only applies in the RoleBinding's namespace, not at the cluster level. This
     allows admins to define a set of common roles for the entire cluster, then reuse them
     in multiple namespaces.
     """
@@ -766,7 +766,7 @@ def reimage(filename, xpath, newvalue, save_to=None):
 RESOURCE_CLASSES = (
     Deployment, DaemonSet, Namespace, Node,
     PersistentVolume, PersistentVolumeClaim,
-    Pod, Policy, ReplicationController,
+    Pod, ReplicationController,
     Role, ClusterRole, RoleBinding,
     ClusterRoleBinding, Service, Secret
 )

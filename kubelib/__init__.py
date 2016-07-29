@@ -3,6 +3,7 @@ from .kubelib import (
     KubeUtils,
     KubeConfig,
     reimage,
+    Kubernetes,
 
     Deployment,
     DaemonSet,
@@ -11,7 +12,6 @@ from .kubelib import (
     PersistentVolume,
     PersistentVolumeClaim,
     Pod,
-    Policy,
     ReplicationController,
     Role,
     ClusterRole,
