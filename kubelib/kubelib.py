@@ -38,8 +38,8 @@ class KubeConfig(object):
     def __init__(self, context=None, namespace=None):
         """Create new KubeConfig object.
 
-        :params context: Kubernetes context for this object
-        :params namespace: Kubernetes namespace, defaults to the current default
+        :param context: Kubernetes context for this object
+        :param namespace: Kubernetes namespace, defaults to the current default
         """
         with open(os.path.expanduser("~/.kube/config")) as handle:
             self.config = bunch.Bunch.fromYAML(

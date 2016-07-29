@@ -1,6 +1,7 @@
 from .kubelib import (
     Kubectl,
     KubeUtils,
+    KubeConfig,
     reimage,
 
     Deployment,

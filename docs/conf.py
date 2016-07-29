@@ -35,10 +35,10 @@ extensions = [
 ]
 
 autodoc_default_flags = [
-	'members', 
-	'undoc-members', 
-	'private-members', 
-	'inherited-members', 
+	'members',
+	'undoc-members',
+# 'private-members',
+	'inherited-members',
 	'show-inheritance'
 ]
 autoclass_content = "both"
