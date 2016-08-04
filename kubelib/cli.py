@@ -108,7 +108,6 @@ def _make_namespace(branch=None):
     for suffix in SUFFIX:
         if branch.endswith(suffix):
             branch = branch[:-1 * len(suffix)]
-            break
 
     branch = fix_length(branch)
     return(branch)
