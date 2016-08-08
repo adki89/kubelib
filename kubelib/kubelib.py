@@ -273,6 +273,9 @@ class Kubernetes(object):
         response = self.client.delete(url)
         return response.json()
 
+    def create_serviceaccount(self, name="default"):
+        return self.kubectl.create.serviceaccount(name, namespace=self.config.namespace)
+
 class ResourceBase(Kubernetes):
     """Base class for particular kinds of kubernetes resources.
     """
@@ -322,6 +325,7 @@ class ResourceBase(Kubernetes):
             )
         except sh.ErrorReturnCode as err:
             logging.error("Unexpected response: %r", err)
+
 
 class ActorBase(ResourceBase):
     """Base class for the Actors (the things that actually *do* stuff).
@@ -426,7 +430,6 @@ class ConfigMap(ReplaceActor):
     strings that do not contain sensitive information."""
     url_type = 'configmap'
 
-
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
@@ -475,6 +478,8 @@ class Namespace(CreateIfMissingActor):
             # compatible for a little while.
             # raise KubeError(response)
             return False
+
+        self.create_serviceaccount("default")
 
         return True
 
