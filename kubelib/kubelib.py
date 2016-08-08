@@ -2,6 +2,7 @@
 Library of Kubernetes flavored helpers and objects
 """
 
+import base64
 import logging
 import os
 import time
@@ -229,8 +230,11 @@ class KubeUtils(KubeConfig):
         for pv in PersistentVolume(self).get_list():
             if pv.status.phase in ['Released', 'Failed']:
                 LOG.info('Rebuilding PV %s', pv.metadata['name'])
-                self.kubectl.delete.pv(pv.metadata.name, context=self.context)
-                self.kubectl.create(
+                sh.kubectl.delete.pv(
+                    pv.metadata.name,
+                    context=self.context
+                )
+                sh.kubectl.create(
                     "--save-config",
                     context=self.context,
                     _in=pv.toYAML(),
@@ -257,6 +261,11 @@ class Kubernetes(object):
     def _post(self, url, data):
         url = self.config.cluster.server + self.api_base + url
         response = self.client.post(url, json=data)
+        return response.json()
+
+    def _put(self, url, data):
+        url = self.config.cluster.server + self.api_base + url
+        response = self.client.put(url, json=data)
         return response.json()
 
     def _delete(self, url):
@@ -648,7 +657,7 @@ class Secret(CreateIfMissingActor):
     in a secret is safer and more flexible than putting it verbatim in a
     pod definition or in a docker image. See Secrets design document for
     more information."""
-    url_type = "secret"
+    url_type = "secrets"
 
     def create(self, name, dict_of_secrets):
         encoded_dict = {}
@@ -669,8 +678,40 @@ class Secret(CreateIfMissingActor):
                 "data": encoded_dict
             }
         )
-        if response['status'] == "Failure":
-            raise KubeError(response)
+
+        try:
+            if response['status'] == "Failure":
+                raise KubeError(response)
+        except KeyError:
+            raise KubeError('Unexpected response: %r', response)
+
+    def replace(self, name, dict_of_secrets):
+        encoded_dict = {}
+        for key in dict_of_secrets:
+            encoded_dict[key] = base64.b64encode(dict_of_secrets[key])
+
+        response = self._put(
+            "/namespaces/{namespace}/secrets/{name}".format(
+                namespace=self.config.namespace,
+                name=name
+            ),
+            data={
+                "kind": "Secret",
+                "apiVersion": "v1",
+                "metadata": {
+                    "name": name,
+                },
+                "type": "Opaque",
+                "data": encoded_dict
+            }
+        )
+
+        # response is a copy of the secret object
+        try:
+            if response['kind'] != "Secret":
+                raise KubeError(response)
+        except KeyError:
+            raise KubeError('Unexpected response: %r', response)
 
 ########################################
 
