@@ -273,8 +273,6 @@ class Kubernetes(object):
         response = self.client.delete(url)
         return response.json()
 
-    def create_serviceaccount(self, name="default"):
-        return self.kubectl.create.serviceaccount(name, namespace=self.config.namespace)
 
 class ResourceBase(Kubernetes):
     """Base class for particular kinds of kubernetes resources.
@@ -325,7 +323,6 @@ class ResourceBase(Kubernetes):
             )
         except sh.ErrorReturnCode as err:
             logging.error("Unexpected response: %r", err)
-
 
 class ActorBase(ResourceBase):
     """Base class for the Actors (the things that actually *do* stuff).
@@ -479,7 +476,10 @@ class Namespace(CreateIfMissingActor):
             # raise KubeError(response)
             return False
 
-        self.create_serviceaccount("default")
+        self.config.set_namespace(namespace)
+        sa = ServiceAccount(self.config)
+        if not sa.exists("default"):
+            sa.create("default")
 
         return True
 
@@ -620,6 +620,12 @@ class Role(CreateIfMissingActor):
     url_type = "role"
     api_base = "rbac.authorization.k8s.io/v1alpha1"
 
+class ServiceAccount(CreateIfMissingActor):
+    url_type = "serviceaccounts"
+
+    def create(self, name="default"):
+        return self.kubectl.create.serviceaccount(name, namespace=self.config.namespace)
+
 class ClusterRole(CreateIfMissingActor):
     """ClusterRoles hold the same information as a Role but can apply to any namespace as
     well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)"""
@@ -685,7 +691,7 @@ class Secret(CreateIfMissingActor):
         )
 
         try:
-            if response['status'] == "Failure":
+            if response['kind'] != "Secret":
                 raise KubeError(response)
         except KeyError:
             raise KubeError('Unexpected response: %r', response)
