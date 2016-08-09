@@ -446,6 +446,10 @@ class DaemonSet(ReplaceActor):
     url_type = "daemonsets"
     api_base = "/apis/extensions/v1beta1"
 
+class Job(CreateIfMissingActor):
+    url_type = "jobs"
+    api_base = "/apis/extensions/v1beta1"
+
 class Namespace(CreateIfMissingActor):
     """Kubernetes supports multiple virtual clusters backed by the same
     physical cluster. These virtual clusters are called namespaces."""
@@ -830,7 +834,7 @@ def reimage(filename, xpath, newvalue, save_to=None):
 
 RESOURCE_CLASSES = (
     ConfigMap,
-    Deployment, DaemonSet, Namespace, Node,
+    Deployment, DaemonSet, Job, Namespace, Node,
     PersistentVolume, PersistentVolumeClaim,
     Pod, ReplicationController,
     Role, ClusterRole, RoleBinding,
