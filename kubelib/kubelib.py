@@ -425,7 +425,7 @@ class ConfigMap(ReplaceActor):
     for system components such as controllers. ConfigMap is similar to
     Secrets, but designed to more conveniently support working with
     strings that do not contain sensitive information."""
-    url_type = 'configmap'
+    url_type = 'configmaps'
 
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
@@ -617,8 +617,9 @@ class Role(CreateIfMissingActor):
     """roles hold a logical grouping of permissions. These permissions map very closely to
     ABAC policies, but only contain information about requests being made. Permission are
     purely additive, rules may only omit permissions they do not wish to grant."""
-    url_type = "role"
-    api_base = "rbac.authorization.k8s.io/v1alpha1"
+    url_type = "roles"
+    api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
+    list_uri = "/{resource_type}"
 
 class ServiceAccount(CreateIfMissingActor):
     url_type = "serviceaccounts"
@@ -629,8 +630,9 @@ class ServiceAccount(CreateIfMissingActor):
 class ClusterRole(CreateIfMissingActor):
     """ClusterRoles hold the same information as a Role but can apply to any namespace as
     well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)"""
-    url_type = "clusterrole"
-    api_base = "rbac.authorization.k8s.io/v1alpha1"
+    url_type = "clusterroles"
+    api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
+    list_uri = "/{resource_type}"
 
 class RoleBinding(CreateIfMissingActor):
     """RoleBindings perform the task of granting the permission to a user or set of users.
@@ -642,13 +644,15 @@ class RoleBinding(CreateIfMissingActor):
     allows admins to define a set of common roles for the entire cluster, then reuse them
     in multiple namespaces.
     """
-    url_type = "rolebinding"
-    api_base = "rbac.authorization.k8s.io/v1alpha1"
+    url_type = "rolebindings"
+    api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
+    list_uri = "/{resource_type}"
 
 class ClusterRoleBinding(CreateIfMissingActor):
     """A ClusterRoleBinding may be used to grant permissions in all namespaces."""
-    url_type = "clusterrolebinding"
-    api_base = "rbac.authorization.k8s.io/v1alpha1"
+    url_type = "clusterrolebindings"
+    api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
+    list_uri = "/{resource_type}"
 
 class Service(CreateIfMissingActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
