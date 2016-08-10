@@ -862,7 +862,7 @@ class Kubectl(KubeUtils):
         return Namespace(self).create(namespace)
 
     def create_path(self, path_or_fn):
-        self.kubectl.create(
+        sh.kubectl.create(
             '--save-config',
             "-f {}".format(path_or_fn),
             context=self.config.context,
@@ -870,7 +870,7 @@ class Kubectl(KubeUtils):
         )
 
     def delete_path(self, path_or_fn):
-        self.kubectl.delete(
+        sh.kubectl.delete(
             "-f {}".format(path_or_fn),
             context=self.config.context,
             namespace=self.config.namespace
