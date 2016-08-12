@@ -483,7 +483,11 @@ class Namespace(CreateIfMissingActor):
         self.config.set_namespace(namespace)
         sa = ServiceAccount(self.config)
         if not sa.exists("default"):
-            sa.create("default")
+            # this will (but not always) fail
+            try:
+                sa.create("default")
+            except sh.ErrorReturnCode_1 as err:
+                LOG.error(err)
 
         return True
 
