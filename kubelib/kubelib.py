@@ -337,6 +337,7 @@ class ActorBase(ResourceBase):
 
         :param path_or_fn: Path or filename of yaml resource descriptions
         """
+        LOG.info('(=) kubectl replace -f %s', path_or_fn)
         self.kubectl.replace(
             '-f', path_or_fn,
             '--namespace={}'.format(self.config.namespace),
@@ -348,6 +349,7 @@ class ActorBase(ResourceBase):
 
         :param path_or_fn: Path or filename of yaml resource descriptions
         """
+        LOG.info('(+) kubectl create -f %s', path_or_fn)
         self.kubectl.create(
             '-f', path_or_fn,
             '--namespace={}'.format(self.config.namespace),
@@ -360,6 +362,7 @@ class ActorBase(ResourceBase):
 
         :param path_or_fn: Path or filename of yaml resource descriptions
         """
+        LOG.info('(-) kubectl delete -f %s', path_or_fn)
         try:
             self.kubectl.delete(
                 '-f', path_or_fn,
@@ -385,6 +388,7 @@ class ActorBase(ResourceBase):
         :param name: Name of the resource we are interest in
         :param force_reload: Force a fresh cope of inventory (bypass cache)
         """
+        LOG.info('(?) does %r:%r exist?', self.url_type, name)
         if self.cache is None or force_reload:
             self.cache = {}
             res_list = self.get_list()
