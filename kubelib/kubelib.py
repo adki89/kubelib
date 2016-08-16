@@ -3,6 +3,7 @@ Library of Kubernetes flavored helpers and objects
 """
 
 import base64
+import json
 import logging
 import os
 import time
@@ -96,6 +97,8 @@ class KubeConfig(object):
             ))
         )
 
+        self.vault_client = None
+
     def set_context(self, context=None):
         """Set the current context.  This is generally
         done during initialization.
@@ -124,6 +127,14 @@ class KubeConfig(object):
             namespace = self.context_obj.context.get('namespace')
 
         self.namespace = namespace
+
+    def set_vault(self, vault_client):
+        """helper to assign a pre-autheticated vault client
+
+        :param vault_client: hvac client
+        """
+        self.vault_client = vault_client
+
 
 class KubeUtils(KubeConfig):
     """Child of KubeConfig with some helper functions attached"""
@@ -331,6 +342,7 @@ class ActorBase(ResourceBase):
     """
     aliases = []
     cache = None
+    secrets = False
 
     def replace_path(self, path_or_fn):
         """Simple kubectl replace wrapper.
@@ -397,9 +409,82 @@ class ActorBase(ResourceBase):
 
         return name in self.cache
 
+    def get_secrets(self, pod_name):
+        if self.config.vault_client is None:
+            LOG.info('No Vault Client provided, skipping...')
+            return
+
+        secret_url = "/secret/{context}/{namespace}/{pod}".format(
+                context=self.config.context,
+                namespace=self.config.namespace,
+                pod=pod_name
+            )
+        LOG.info('Reading secrets for %r', secret_url)
+        try:
+            pod_secrets = self.config.vault_client.read(secret_url)['data']
+        except Exception as err:
+            LOG.error(err)
+            LOG.info('Skipping...')
+
+        return pod_secrets
+
+    def apply_secrets(self, desc, filename):
+        """If this resource type support secrets and a vault client has
+        been assigned we want to check vault to see if there are any
+        secrets for this resource.  If there are we want to extract
+        the secrets from vault and create them as kubernetes secrets.
+        We're also going to patch into the resource yaml to make the
+        secrets available as environmentals.
+
+        TODO: support 'type's other than 'env' to automate putting
+        files into the container.
+        """
+
+        if self.secrets and self.config.vault_client:
+            pod_name = desc.metadata.generateName.split('-')[0]
+
+            pod_secrets = self.get_secrets(pod_name)
+            secret_name = pod_name + '-vault'
+
+            # reformulate secrets to a dict suitable for
+            # creating kube secrets and a list for injecting
+            # into the .yaml
+            secrets = {}
+            env = []
+            for secret in pod_secrets:
+                my_secret = json.loads(pod_secrets[secret])
+                secrets[my_secret['key']] = my_secret['value']
+                if my_secret.get('type', '') == 'env':
+                    env.append({
+                        "name": my_secret['key'],
+                        "valueFrom": {
+                            "secretKeyRef": {
+                                "name": "secret",
+                                "key": secret
+                            }
+                        }
+                    })
+
+            if secrets:
+                if Secret(self.config).exists(secret_name):
+                    LOG.info('Secret %r already exists.  Replacing it.', secret_name)
+                    Secret(self.config).replace(secret_name, secrets)
+                else:
+                    LOG.info('Secret %r does not exist.  Creating it.', secret_name)
+                    Secret(self.config).create(secret_name, secrets)
+
+            reimage(
+                filename=filename,
+                xpath="spec.template.spec.containers.0.env",
+                newvalue=desc.spec.template.spec.containers[0].env + env
+            )
+
+
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
     def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+
         if self.exists(desc.metadata.name):
             self.delete_path(filename)
         self.create_path(filename)
@@ -407,6 +492,8 @@ class DeleteCreateActor(ActorBase):
 class ReplaceActor(ActorBase):
     """Do a *kubectl replace* on this object"""
     def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+
         if self.exists(desc.metadata.name):
             self.replace_path(filename)
         else:
@@ -415,6 +502,8 @@ class ReplaceActor(ActorBase):
 class CreateIfMissingActor(ActorBase):
     """Create only if the resource is missing"""
     def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+
         if not self.exists(desc.metadata.name):
             self.create_path(filename)
 
@@ -441,6 +530,7 @@ class Deployment(ReplaceActor):
     existing ones by new ones."""
     url_type = 'deployments'
     api_base = "/apis/extensions/v1beta1"
+    secrets = True
 
 class DaemonSet(ReplaceActor):
     """A Daemon Set ensures that all (or some) nodes run a copy of a
@@ -624,6 +714,7 @@ class ReplicationController(DeleteCreateActor):
     a single node, the replication controller supervises multiple pods across multiple
     nodes."""
     url_type = "replicationcontrollers"
+    secrets = True
 
 class Role(CreateIfMissingActor):
     """roles hold a logical grouping of permissions. These permissions map very closely to
@@ -850,8 +941,8 @@ RESOURCE_CLASSES = (
 )
 
 TYPE_TO_KIND = {}
-for resource in RESOURCE_CLASSES:
-    TYPE_TO_KIND[resource.url_type] = resource.__name__
+for resource_class in RESOURCE_CLASSES:
+    TYPE_TO_KIND[resource_class.url_type] = resource_class.__name__
 
 # inverse
 KIND_TO_TYPE = {}
