@@ -484,6 +484,11 @@ class ActorBase(ResourceBase):
                 newvalue=desc.spec.template.spec.containers[0].env + env
             )
 
+            with open(filename, "r") as handle:
+                content = handle.read()
+
+            LOG.info('Creating:\n%s' % content)
+
 
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
