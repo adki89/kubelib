@@ -455,10 +455,10 @@ class ActorBase(ResourceBase):
             secrets = {}
             env = []
             for secret in pod_secrets:
-                LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
+                #LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
 
                 my_secret = json.loads(pod_secrets[secret])
-                secrets[my_secret['key']] = my_secret['value']
+                secrets[secret] = my_secret['value']
                 if my_secret.get('type', '') == 'env':
                     env.append({
                         "name": my_secret['key'],
