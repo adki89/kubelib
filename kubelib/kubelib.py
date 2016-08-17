@@ -455,7 +455,7 @@ class ActorBase(ResourceBase):
             secrets = {}
             env = []
             envdict = {}
-            LOG.info(pod_secrets)
+            # LOG.info(pod_secrets)
             for secret in pod_secrets:
                 #LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
 
@@ -466,7 +466,7 @@ class ActorBase(ResourceBase):
                         "name": my_secret['key'],
                         "valueFrom": {
                             "secretKeyRef": {
-                                "name": "secret",
+                                "name": secret_name,
                                 "key": secret
                             }
                         }
@@ -495,10 +495,9 @@ class ActorBase(ResourceBase):
                 newvalue=env
             )
 
-            with open(filename, "r") as handle:
-                content = handle.read()
-
-            LOG.info('Creating:\n%s' % content)
+            # with open(filename, "r") as handle:
+            #    content = handle.read()
+            # LOG.info('Creating:\n%s' % content)
 
 
 class DeleteCreateActor(ActorBase):
