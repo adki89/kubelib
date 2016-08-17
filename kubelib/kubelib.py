@@ -428,6 +428,9 @@ class ActorBase(ResourceBase):
 
         return pod_secrets
 
+    def simple_name(self, desc):
+        return desc.metadata.name
+
     def apply_secrets(self, desc, filename):
         """If this resource type support secrets and a vault client has
         been assigned we want to check vault to see if there are any
@@ -441,7 +444,7 @@ class ActorBase(ResourceBase):
         """
 
         if self.secrets and self.config.vault_client:
-            pod_name = desc.metadata.generateName.split('-')[0]
+            pod_name = self.simple_name(desc)
 
             pod_secrets = self.get_secrets(pod_name)
             secret_name = pod_name + '-vault'
@@ -715,6 +718,9 @@ class ReplicationController(DeleteCreateActor):
     nodes."""
     url_type = "replicationcontrollers"
     secrets = True
+
+    def simple_name(self, desc):
+        return desc.metadata.generateName.split('-')[0]
 
 class Role(CreateIfMissingActor):
     """roles hold a logical grouping of permissions. These permissions map very closely to
