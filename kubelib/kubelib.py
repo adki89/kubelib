@@ -454,6 +454,7 @@ class ActorBase(ResourceBase):
             # into the .yaml
             secrets = {}
             env = []
+            envdict = {}
             LOG.info(pod_secrets)
             for secret in pod_secrets:
                 #LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
