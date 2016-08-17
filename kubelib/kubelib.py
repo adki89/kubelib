@@ -661,6 +661,9 @@ class Pod(IgnoreActor):
     url_type = "pods"
     aliases = ['pod']
 
+    def simple_name(self, desc):
+        return desc.metadata.generateName.split('-')[0]
+
     def wait_for_pod(self, pod_name, max_delay=300):
         """Block until the given pod is running.
 
@@ -735,9 +738,6 @@ class ReplicationController(DeleteCreateActor):
     nodes."""
     url_type = "replicationcontrollers"
     secrets = True
-
-    def simple_name(self, desc):
-        return desc.metadata.generateName.split('-')[0]
 
 class Role(CreateIfMissingActor):
     """roles hold a logical grouping of permissions. These permissions map very closely to
