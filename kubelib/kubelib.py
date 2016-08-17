@@ -484,7 +484,7 @@ class ActorBase(ResourceBase):
 
             # new secrets override old ones
             for v in desc.spec.template.spec.containers[0].env:
-                if v in envdict:
+                if v.name in envdict:
                     pass
                 else:
                     env.append(v)
