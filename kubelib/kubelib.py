@@ -454,13 +454,14 @@ class ActorBase(ResourceBase):
             # into the .yaml
             secrets = {}
             env = []
+            LOG.info(pod_secrets)
             for secret in pod_secrets:
                 #LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
 
                 my_secret = json.loads(pod_secrets[secret])
                 secrets[secret] = my_secret['value']
                 if my_secret.get('type', '') == 'env':
-                    env.append({
+                    val = {
                         "name": my_secret['key'],
                         "valueFrom": {
                             "secretKeyRef": {
@@ -468,7 +469,9 @@ class ActorBase(ResourceBase):
                                 "key": secret
                             }
                         }
-                    })
+                    }
+                    env.append(val)
+                    envdict[my_secret['key']] = val
 
             if secrets:
                 if Secret(self.config).exists(secret_name):
@@ -478,10 +481,17 @@ class ActorBase(ResourceBase):
                     LOG.info('Secret %r does not exist.  Creating it.', secret_name)
                     Secret(self.config).create(secret_name, secrets)
 
+            # new secrets override old ones
+            for v in desc.spec.template.spec.containers[0].env:
+                if v in envdict:
+                    pass
+                else:
+                    env.append(v)
+
             reimage(
                 filename=filename,
                 xpath="spec.template.spec.containers.0.env",
-                newvalue=desc.spec.template.spec.containers[0].env + env
+                newvalue=env
             )
 
             with open(filename, "r") as handle:
