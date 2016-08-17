@@ -487,7 +487,7 @@ class ActorBase(ResourceBase):
                 if v.name in envdict:
                     pass
                 else:
-                    env.append(v)
+                    env.append(v.toDict())
 
             reimage(
                 filename=filename,
