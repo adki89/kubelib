@@ -483,11 +483,11 @@ class ActorBase(ResourceBase):
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
-            for v in desc.spec.template.spec.containers[0].env:
-                if v.name in envdict:
-                    pass
-                else:
-                    env.append(v.toDict())
+            # for v in desc.spec.template.spec.containers[0].env:
+            #     if v.name in envdict:
+            #         pass
+            #     else:
+            #         env.append(v.toDict())
 
             reimage(
                 filename=filename,
