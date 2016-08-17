@@ -420,6 +420,7 @@ class ActorBase(ResourceBase):
                 pod=pod_name
             )
         LOG.info('Reading secrets for %r', secret_url)
+        pod_secrets = {}
         try:
             pod_secrets = self.config.vault_client.read(secret_url)['data']
         except Exception as err:
