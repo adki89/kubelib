@@ -4,6 +4,44 @@
 import hashlib
 import re
 import sys
+import kubelib
+
+import docopt
+
+import logging, logging.config
+
+logging.config.dictConfig({
+    'version': 1,
+    'formatters': {
+        'detailed': {
+            'class': 'logging.Formatter',
+            'format': '%(asctime)s %(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+            'formatter': 'detailed'
+        }
+    },
+    'loggers': {
+        'kubelib': {
+            'level': 'DEBUG',
+            'propagate': True
+        },
+        'sh': {
+            'level': 'WARNING',
+            'propagate': True
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console']
+    }
+})
+
+LOG = logging.getLogger(__name__)
 
 # must be a DNS label (at most 63 characters, matching regex
 # [a-z0-9]([-a-z0-9]*[a-z0-9])?): e.g. "my-name"
@@ -24,14 +62,12 @@ class InvalidBranch(Exception):
     def __str__(self):
         return repr(self.value)
 
-
 def add_prefix(namespace):
     """Derp, add the prefix."""
     if PREFIX:
         return PREFIX + "-" + namespace
     else:
         return namespace
-
 
 def fix_length(branch):
     """Make sure the branch name is not too long."""
@@ -52,7 +88,6 @@ def fix_length(branch):
         # a unique but reproducable namespace.
         branch = add_prefix(branch)[:60] + branch_hash[:3]
         return branch
-
 
 def _make_namespace(branch=None):
     """
@@ -146,6 +181,36 @@ def _make_nodeport(namespace=None):
 def make_nodeport(namespace=None):
     np = _make_nodeport(namespace)
     print(np)
+    return(0)
+
+def wait_for_pod():
+    """
+    Wait for the given pod to be running
+
+    Usage:
+      wait_for_pod --namespace=<namespace> --pod=<pod> [--context=<context>] [--maxdelay=<maxdelay>]
+
+    Options:
+        -h --help               Show this screen
+        --context=<context>     kube context [default: dev-seb]
+        --namespace=<namespace> kubernetes namespace
+        --pod=<pod>             Pod we want to wait for
+        --maxdelay=<maxdelay>   Maximum time to wait in seconds [default: 300]
+    """
+    args = docopt.docopt(wait_for_pod.__doc__)
+    LOG.debug(args)
+
+    kube = kubelib.KubeConfig(
+        context=args['--context'],
+        namespace=args['--namespace']
+    )
+
+    pod = kubelib.Pod(kube).wait_for_pod(
+        pod_name=args['--pod'],
+        max_delay=float(args['--maxdelay'])
+    )
+
+    print(pod)
     return(0)
 
 if __name__ == "__main__":

@@ -680,7 +680,7 @@ class Pod(IgnoreActor):
         while 1:
             pods = self.get_list()
             for pod in pods:
-                if pod.metadata.generateName == pod_name + '-':
+                if pod.metadata.generateName.split('-')[0] == pod_name:
                     if pod.status.phase == "Running":
                         return pod.metadata.name
                     else:
@@ -689,13 +689,16 @@ class Pod(IgnoreActor):
                             pod.metadata.name,
                             pod.status.phase
                         )
+                else:
+                    LOG.debug('%s != %s', pod_name, pod.metadata.generateName)
 
             # ok, we got through the list of all pods without finding
             # an acceptable running pod.  So we pause (briefly) and try again.
-
-            if time.time() - start > max_delay:
+            right_now = time.time()
+            if (right_now - start) > max_delay:
                 raise TimeOut('Maximum delay {} exceeded'.format(max_delay))
             else:
+                LOG.info('%s <= %s, waiting...', right_now - start, max_delay)
                 time.sleep(2)
 
     def exec_cmd(self, pod, container, *command):

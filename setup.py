@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'make_namespace=kubelib.cli:make_namespace',
             'make_nodeport=kubelib.cli:make_nodeport',
+            'wait_for_pod=kubelib.cli:wait_for_pod'
         ]
     }
 )
