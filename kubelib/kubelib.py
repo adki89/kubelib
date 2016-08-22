@@ -561,6 +561,20 @@ class DaemonSet(ReplaceActor):
     url_type = "daemonsets"
     api_base = "/apis/extensions/v1beta1"
 
+class HorizontalPodAutoscaler(CreateIfMissingActor):
+    """With Horizontal Pod Autoscaling, Kubernetes automatically scales the
+    number of pods in a replication controller, deployment or replica set
+    based on observed CPU utilization (or, with alpha support, on some other,
+    application-provided metrics).
+    The Horizontal Pod Autoscaler is implemented as a Kubernetes API resource
+    and a controller. The resource determines the behavior of the controller.
+    The controller periodically adjusts the number of replicas in a replication
+    controller or deployment to match the observed average CPU utilization to
+    the target specified by user."""
+    url_type = "horizontalpodautoscalers"
+    api_base = "/apis/autoscaling/v1"
+
+
 class Job(CreateIfMissingActor):
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
@@ -617,6 +631,16 @@ class Namespace(CreateIfMissingActor):
             )
         )
         return response
+
+class NetworkPolicy(ReplaceActor):
+    """A network policy is a specification of how selections of pods are
+    allowed to communicate with each other and other network endpoints.
+    NetworkPolicy resources use labels to select pods and define whitelist
+    rules which allow traffic to the selected pods in addition to what is
+    allowed by the isolation policy for a given namespace."""
+    url_type = "networkpolicies"
+    api_base = "/apis/extensions/v1beta1"
+
 
 class Node(IgnoreActor):
     """Node is a worker machine in Kubernetes, previously known as Minion.
@@ -960,7 +984,8 @@ def reimage(filename, xpath, newvalue, save_to=None):
 
 RESOURCE_CLASSES = (
     ConfigMap,
-    Deployment, DaemonSet, Job, Namespace, Node,
+    Deployment, DaemonSet, HorizontalPodAutoscaler,
+    Job, Namespace, NetworkPolicy, Node,
     PersistentVolume, PersistentVolumeClaim,
     Pod, ReplicationController,
     Role, ClusterRole, RoleBinding,
