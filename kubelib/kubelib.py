@@ -472,6 +472,8 @@ class ActorBase(ResourceBase):
                             }
                         }
                     }
+                    LOG.info('Adding secret: %r', val)
+
                     env.append(val)
                     envdict[my_secret['key']] = val
 
