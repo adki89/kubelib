@@ -833,7 +833,7 @@ class Secret(CreateIfMissingActor):
     def create(self, name, dict_of_secrets):
         encoded_dict = {}
         for key in dict_of_secrets:
-            encoded_dict[key] = base64.b64encode(dict_of_secrets[key])
+            encoded_dict[key] = base64.b64encode(str(dict_of_secrets[key]))
 
         response = self._post(
             "/namespaces/{namespace}/secrets".format(
