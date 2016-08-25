@@ -5,6 +5,8 @@ import hashlib
 import re
 import sys
 import kubelib
+import glob
+import os
 
 import docopt
 
@@ -212,6 +214,34 @@ def wait_for_pod():
 
     print(pod)
     return(0)
+
+def envdir_to_configmap():
+    """
+    Convert a given envdir to a kubernetes configmap
+
+    Usage:
+      envdir_to_configmap --namespace=<namespace> [--context=<context>] envdir=<envdir>
+
+    Options:
+        -h --help               Show this screen
+        --context=<context>     kube context [default: dev-seb]
+        --namespace=<namespace> kubernetes namespace
+        --envdir=<envdir>       envdir directory
+    """
+    args = docopt.docopt(wait_for_pod.__doc__)
+    config = {}
+    for filename in glob.glob(os.path.join(args['--envdir'], "*")):
+        with open(filename, 'r') as h:
+            config[os.path.basename] = h.read()
+
+    kube = kubelib.KubeConfig(
+        context=args['--context'],
+        namespace=args['--namespace']
+    )
+
+    kubelib.ConfigMap(kube).from_dict(config)
+    return(0)
+
 
 if __name__ == "__main__":
     import doctest

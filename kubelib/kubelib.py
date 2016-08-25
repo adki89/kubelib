@@ -543,6 +543,48 @@ class ConfigMap(ReplaceActor):
     strings that do not contain sensitive information."""
     url_type = 'configmaps'
 
+    def from_path(self, configkey, filename):
+        """File contents should be one config key/value per line delimited by
+        an equal ala:
+
+        enemies=aliens
+        lives=3
+        enemies.cheat=true
+        enemies.cheat.level=noGoodRotten
+        """
+
+        # kubectl create configmap game-config --from-file=docs/user-guide/configmap/kubectl
+        self.kubectl.create.configmap(
+            configkey,
+            "--from-file={}".format(filename),
+            '--context={}'.format(self.config.context),
+            '--namespace={}'.format(self.config.namespace)
+        )
+
+    # When --from-file points to a directory, each file directly in that
+    # directory is used to populate a key in the ConfigMap, where the name
+    # of the key is the filename, and the value of the key is the content
+    # of the file.
+
+    def from_dict(self, literal_dict):
+        """
+        $ kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
+        """
+        literal = []
+        for key in literal_dict:
+            literal.append('--from-literal={key}={value}'.format(
+                key=key,
+                value=literal_dict[key]
+            ))
+
+        self.kubectl.create.configmap(
+            configkey,
+            " ".join(literal),
+            '--context={}'.format(self.config.context),
+            '--namespace={}'.format(self.config.namespace)
+        )
+
+
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
