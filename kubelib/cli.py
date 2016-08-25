@@ -223,10 +223,11 @@ def envdir_to_configmap():
       envdir_to_configmap --namespace=<namespace> [--context=<context>] envdir=<envdir>
 
     Options:
-        -h --help               Show this screen
-        --context=<context>     kube context [default: dev-seb]
-        --namespace=<namespace> kubernetes namespace
-        --envdir=<envdir>       envdir directory
+        -h --help                 Show this screen
+        --context=<context>       kube context [default: dev-seb]
+        --namespace=<namespace>   kubernetes namespace
+        --configname=<configname> name of configmap
+        --envdir=<envdir>         envdir directory
     """
     args = docopt.docopt(wait_for_pod.__doc__)
     config = {}
@@ -239,7 +240,9 @@ def envdir_to_configmap():
         namespace=args['--namespace']
     )
 
-    kubelib.ConfigMap(kube).from_dict(config)
+    kubelib.ConfigMap(kube).from_dict(
+        args['configmap'], config
+    )
     return(0)
 
 
