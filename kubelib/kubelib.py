@@ -551,6 +551,11 @@ class ConfigMap(ReplaceActor):
         lives=3
         enemies.cheat=true
         enemies.cheat.level=noGoodRotten
+
+        # When --from-file points to a directory, each file directly in that
+        # directory is used to populate a key in the ConfigMap, where the name
+        # of the key is the filename, and the value of the key is the content
+        # of the file.
         """
 
         # kubectl create configmap game-config --from-file=docs/user-guide/configmap/kubectl
@@ -560,11 +565,6 @@ class ConfigMap(ReplaceActor):
             '--context={}'.format(self.config.context),
             '--namespace={}'.format(self.config.namespace)
         )
-
-    # When --from-file points to a directory, each file directly in that
-    # directory is used to populate a key in the ConfigMap, where the name
-    # of the key is the filename, and the value of the key is the content
-    # of the file.
 
     def from_dict(self, literal_dict):
         """
