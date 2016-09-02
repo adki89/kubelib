@@ -169,6 +169,10 @@ class KubeUtils(KubeConfig):
                     resource_content
                 )
 
+            if resource_desc is None:
+                LOG.error('Invalid resource file %s', resource_fn)
+                continue
+
             if resource_desc.kind not in cache:
                 resource_class = resource_by_kind(resource_desc.kind)
                 resource = resource_class(self)
