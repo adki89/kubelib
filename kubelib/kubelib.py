@@ -622,6 +622,8 @@ class HorizontalPodAutoscaler(CreateIfMissingActor):
 class Job(CreateIfMissingActor):
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
+    secrets = True
+
 
 class Namespace(CreateIfMissingActor):
     """Kubernetes supports multiple virtual clusters backed by the same
