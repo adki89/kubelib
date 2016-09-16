@@ -451,8 +451,17 @@ class ActorBase(ResourceBase):
         if self.secrets and self.config.vault_client:
             pod_name = self.simple_name(desc)
 
-            pod_secrets = self.get_secrets(pod_name)
-            secret_name = pod_name + '-vault'
+            default_secrets = self.get_secrets("_default_")
+            override_secrets = self.get_secrets(pod_name)
+
+            pod_secrets = default_secrets
+            for secret_key in override_secrets:
+                pod_secrets[secret_key] = override_secrets[secret_key]
+
+            if os.environ.get('KUBELIB_VERSION', '1') == '2':
+                secret_name = pod_name
+            else:
+                secret_name = pod_name + "-vault"
 
             # reformulate secrets to a dict suitable for
             # creating kube secrets and a list for injecting
@@ -501,10 +510,6 @@ class ActorBase(ResourceBase):
                 xpath="spec.template.spec.containers.0.env",
                 newvalue=env
             )
-
-            # with open(filename, "r") as handle:
-            #    content = handle.read()
-            # LOG.info('Creating:\n%s' % content)
 
 
 class DeleteCreateActor(ActorBase):
@@ -570,7 +575,7 @@ class ConfigMap(ReplaceActor):
             '--namespace={}'.format(self.config.namespace)
         )
 
-    def from_dict(self, literal_dict):
+    def from_dict(self, configkey, literal_dict):
         """
         $ kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
         """
@@ -622,12 +627,19 @@ class HorizontalPodAutoscaler(CreateIfMissingActor):
     url_type = "horizontalpodautoscalers"
     api_base = "/apis/autoscaling/v1"
 
+class Ingress(ReplaceActor):
+    """An Ingress is a collection of rules that allow inbound
+    connections to reach the cluster services."""
+    url_type = "ingress"
+    aliases = ["ing"]
+    api_base = "/apis/extensions/v1beta1"
+    secrets = True
+
 
 class Job(CreateIfMissingActor):
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
     secrets = True
-
 
 class Namespace(CreateIfMissingActor):
     """Kubernetes supports multiple virtual clusters backed by the same
@@ -690,7 +702,6 @@ class NetworkPolicy(ReplaceActor):
     allowed by the isolation policy for a given namespace."""
     url_type = "networkpolicies"
     api_base = "/apis/extensions/v1beta1"
-
 
 class Node(IgnoreActor):
     """Node is a worker machine in Kubernetes, previously known as Minion.
@@ -1035,6 +1046,7 @@ def reimage(filename, xpath, newvalue, save_to=None):
 RESOURCE_CLASSES = (
     ConfigMap,
     Deployment, DaemonSet, HorizontalPodAutoscaler,
+    Ingress,
     Job, Namespace, NetworkPolicy, Node,
     PersistentVolume, PersistentVolumeClaim,
     Pod, ReplicationController,
