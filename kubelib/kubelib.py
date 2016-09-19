@@ -6,6 +6,8 @@ import base64
 import json
 import logging
 import os
+import shutil
+import tempfile
 import time
 import yaml
 
@@ -579,19 +581,34 @@ class ConfigMap(ReplaceActor):
         """
         $ kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
         """
-        literal = []
+
+        # so this didn't work (value is too messy)
+        # literal = []
+        # for key in literal_dict:
+        #     literal.append('--from-literal={key}={value}'.format(
+        #         key=key,
+        #         value=literal_dict[key]
+        #     ))
+
+        # self.kubectl.create.configmap(
+        #     configkey,
+        #     " ".join(literal),
+        #     '--context={}'.format(self.config.context),
+        #     '--namespace={}'.format(self.config.namespace)
+        # )
+        tdir = tempfile.mkdtemp()
         for key in literal_dict:
-            literal.append('--from-literal={key}={value}'.format(
-                key=key,
-                value=literal_dict[key]
-            ))
+            with open(os.path.join(tdir, key), 'w') as h:
+                h.write(literal_dict[key])
 
         self.kubectl.create.configmap(
             configkey,
-            " ".join(literal),
+            "--from-file={}".format(tdir),
             '--context={}'.format(self.config.context),
             '--namespace={}'.format(self.config.namespace)
         )
+
+        shutil.rmtree(tdir)
 
 
 class Deployment(ReplaceActor):
