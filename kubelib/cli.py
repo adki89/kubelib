@@ -129,6 +129,12 @@ def _make_namespace(branch=None):
 
     branch = branch.lower()
 
+    # remove a
+    as_list = branch.split('-')
+    if as_list:
+        # I am sorry.
+        branch = '-'.join([element for index, element in enumerate(as_list) if as_list.index(element) == index])
+
     if not passing_re.match(branch):
         name = ""
         try:
