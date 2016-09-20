@@ -748,7 +748,7 @@ class PersistentVolumeClaim(CreateIfMissingActor):
     url_type = "persistentvolumeclaims"
     aliases = ['pvc']
 
-class PetSet(ReplaceActor):
+class PetSet(DeleteCreateActor):
     """In Kubernetes, most pod management abstractions group them into
     disposable units of work that compose a micro service. Replication
     controllers for example, are designed with a weak guarantee - that
