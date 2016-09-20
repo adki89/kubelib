@@ -137,7 +137,6 @@ class KubeConfig(object):
         """
         self.vault_client = vault_client
 
-
 class KubeUtils(KubeConfig):
     """Child of KubeConfig with some helper functions attached"""
 
@@ -289,7 +288,6 @@ class Kubernetes(object):
         url = self.config.cluster.server + self.api_base + url
         response = self.client.delete(url)
         return response.json()
-
 
 class ResourceBase(Kubernetes):
     """Base class for particular kinds of kubernetes resources.
@@ -513,7 +511,6 @@ class ActorBase(ResourceBase):
                 newvalue=env
             )
 
-
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
     def apply(self, desc, filename):
@@ -610,7 +607,6 @@ class ConfigMap(ReplaceActor):
 
         shutil.rmtree(tdir)
 
-
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
@@ -651,7 +647,6 @@ class Ingress(ReplaceActor):
     aliases = ["ing"]
     api_base = "/apis/extensions/v1beta1"
     secrets = True
-
 
 class Job(CreateIfMissingActor):
     url_type = "jobs"
@@ -752,6 +747,32 @@ class PersistentVolumeClaim(CreateIfMissingActor):
     read/write or many times read-only)."""
     url_type = "persistentvolumeclaims"
     aliases = ['pvc']
+
+class PetSet(ReplaceActor):
+    """In Kubernetes, most pod management abstractions group them into
+    disposable units of work that compose a micro service. Replication
+    controllers for example, are designed with a weak guarantee - that
+    there should be N replicas of a particular pod template. The pods
+    are treated as stateless units, if one of them is unhealthy or
+    superseded by a newer version, the system just disposes it.
+
+    A Pet Set, in contrast, is a group of stateful pods that require a
+    stronger notion of identity. The document refers to these as "clustered
+    applications".
+
+    The co-ordinated deployment of clustered applications is notoriously
+    hard. They require stronger notions of identity and membership,
+    which they use in opaque internal protocols, and are especially
+    prone to race conditions and deadlock. Traditionally administrators
+    have deployed these applications by leveraging nodes as stable,
+    long-lived entities with persistent storage and static ips.
+
+    The goal of Pet Set is to decouple this dependency by assigning
+    identities to individual instances of an application that are not
+    anchored to the underlying physical infrastructure.
+    """
+    url_type = "petsets"
+    api_base = "/apis/apps/v1alpha1"
 
 class Pod(IgnoreActor):
     """A pod (as in a pod of whales or pea pod) is a group of one or more
@@ -1066,6 +1087,7 @@ RESOURCE_CLASSES = (
     Ingress,
     Job, Namespace, NetworkPolicy, Node,
     PersistentVolume, PersistentVolumeClaim,
+    PetSet,
     Pod, ReplicationController,
     Role, ClusterRole, RoleBinding,
     ClusterRoleBinding, Service, Secret
@@ -1143,6 +1165,7 @@ class Kubectl(KubeUtils):
                 'persistentvolumes': 'PersistentVolume',
                 'pv': 'PersistentVolume',
                 'persistentvolumeclaims': 'PersistentVolumeClaim',
+                'petset': '',
                 'pvc': 'PersistentVolumeClaim',
                 'quota': '',
                 'resourcequotas': '',
