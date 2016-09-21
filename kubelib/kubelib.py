@@ -157,7 +157,7 @@ class KubeUtils(KubeConfig):
 
         cache = {}
         for resource_fn in glob2.glob(path):
-            LOG.info('Applying %r', resource_fn)
+            LOG.info('Considering %r', resource_fn)
             if os.path.isdir(resource_fn):
                 continue
 
@@ -284,6 +284,15 @@ class Kubernetes(object):
         response = self.client.put(url, json=data)
         return response.json()
 
+    def _patch(self, url, data):
+        url = self.config.cluster.server + self.api_base + url
+        LOG.debug('_path: %s : %s', url, data)
+        response = self.client.patch(
+            url,
+            data=json.dumps(data),
+            headers={'content-type': 'application/strategic-merge-patch+json'})
+        return response.json()
+
     def _delete(self, url):
         url = self.config.cluster.server + self.api_base + url
         response = self.client.delete(url)
@@ -315,12 +324,19 @@ class ResourceBase(Kubernetes):
         resource by name
         """
         return bunch.bunchify(
-            self._get(self.api_base, self.single_uri.format(
+            self._get(self.single_uri.format(
                 namespace=self.config.namespace,
                 resource_type=self.url_type,
                 name=name
             ))
         )
+
+    def patch(self, name, data):
+        return self._patch(self.single_uri.format(
+                namespace=self.config.namespace,
+                resource_type=self.url_type,
+                name=name
+        ), data=data)
 
     def delete(self, name):
         """delete the named resource
@@ -404,14 +420,25 @@ class ActorBase(ResourceBase):
         :param name: Name of the resource we are interest in
         :param force_reload: Force a fresh cope of inventory (bypass cache)
         """
-        LOG.info('(?) does %r:%r exist?', self.url_type, name)
+        fresh = False
         if self.cache is None or force_reload:
+            fresh = True
             self.cache = {}
             res_list = self.get_list()
             for res in res_list:
                 self.cache[res.metadata.name] = res
 
-        return name in self.cache
+        url = self.list_uri.format(
+            namespace=self.config.namespace,
+            resource_type=self.url_type
+        )
+
+        if name in self.cache:
+            LOG.info('(EXISTS) [%s] %s:%s', fresh, url, name)
+            return True
+        else:
+            LOG.info('(MISSING) [%s] %s:%s', fresh, url, name)
+            return False
 
     def get_secrets(self, pod_name):
         if self.config.vault_client is None:
@@ -738,6 +765,20 @@ class PersistentVolume(CreateIfMissingActor):
     aliases = ['pv']
     list_uri = "/{resource_type}"
     single_uri = "/{resource_type}/{name}"
+
+    def set_claimRef(self, name, claimref):
+        """Manually link PV $name with the given claim reference (pvc name)"""
+        return self.patch(
+            name,
+            {
+                "spec": {
+                    "claimRef": {
+                        "name": claimref,
+                        "namespace": self.config.namespace
+                    }
+                }
+            }
+        )
 
 class PersistentVolumeClaim(CreateIfMissingActor):
     """A PersistentVolumeClaim (PVC) is a request for storage by a user. It
