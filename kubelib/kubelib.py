@@ -675,7 +675,7 @@ class Ingress(ReplaceActor):
     api_base = "/apis/extensions/v1beta1"
     secrets = True
 
-class Job(CreateIfMissingActor):
+class Job(DeleteCreateActor):
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
     secrets = True
