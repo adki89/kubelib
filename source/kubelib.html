@@ -173,6 +173,20 @@ default kubectl namespace for this context.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.Kubectl.set_vault">
+<code class="descname">set_vault</code><span class="sig-paren">(</span><em>vault_client</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Kubectl.set_vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper to assign a pre-autheticated vault client</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vault_client</strong> &#8211; hvac client</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div></blockquote>
@@ -228,6 +242,20 @@ default kubectl namespace for this context.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>namespace</strong> &#8211; Namespace to use</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.KubeConfig.set_vault">
+<code class="descname">set_vault</code><span class="sig-paren">(</span><em>vault_client</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeConfig.set_vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper to assign a pre-autheticated vault client</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vault_client</strong> &#8211; hvac client</td>
 </tr>
 </tbody>
 </table>
@@ -359,6 +387,20 @@ default kubectl namespace for this context.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.KubeUtils.set_vault">
+<code class="descname">set_vault</code><span class="sig-paren">(</span><em>vault_client</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.KubeUtils.set_vault" title="Permalink to this definition">¶</a></dt>
+<dd><p>helper to assign a pre-autheticated vault client</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vault_client</strong> &#8211; hvac client</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div></blockquote>
@@ -401,6 +443,19 @@ existing ones by new ones.</p>
 <dt id="kubelib.Deployment.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Deployment.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Deployment.create_path">
@@ -471,6 +526,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Deployment.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Deployment.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Deployment.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -483,6 +548,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Deployment.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Deployment.aliases">
@@ -502,6 +572,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.Deployment.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Deployment.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Deployment.secrets">
+<code class="descname">secrets</code><em class="property"> = True</em><a class="headerlink" href="#kubelib.Deployment.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -533,6 +608,19 @@ Deleting a Daemon Set will clean up the pods it created.</p>
 <dt id="kubelib.DaemonSet.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.DaemonSet.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.DaemonSet.create_path">
@@ -603,6 +691,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.DaemonSet.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.DaemonSet.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.DaemonSet.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -615,6 +713,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.DaemonSet.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.DaemonSet.aliases">
@@ -634,6 +737,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.DaemonSet.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.DaemonSet.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.DaemonSet.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.DaemonSet.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -663,6 +771,19 @@ physical cluster. These virtual clusters are called namespaces.</p>
 <dt id="kubelib.Namespace.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Namespace.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Namespace.create">
@@ -755,6 +876,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Namespace.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Namespace.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Namespace.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -767,6 +898,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Namespace.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Namespace.aliases">
@@ -786,6 +922,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.Namespace.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.Namespace.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Namespace.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Namespace.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -832,6 +973,19 @@ sub-classes.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Node.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
 </dd></dl>
 
 <dl class="method">
@@ -903,6 +1057,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Node.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Node.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Node.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -915,6 +1079,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Node.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Node.aliases">
@@ -934,6 +1103,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.Node.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Node.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Node.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Node.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -968,6 +1142,19 @@ system.</p>
 <dt id="kubelib.PersistentVolume.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.PersistentVolume.create_path">
@@ -1038,6 +1225,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.PersistentVolume.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.PersistentVolume.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1050,6 +1247,17 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.set_claimRef">
+<code class="descname">set_claimRef</code><span class="sig-paren">(</span><em>name</em>, <em>claimref</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.set_claimRef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manually link PV $name with the given claim reference (pvc name)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolume.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.PersistentVolume.aliases">
@@ -1069,6 +1277,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.PersistentVolume.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.PersistentVolume.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolume.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.PersistentVolume.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1101,6 +1314,19 @@ read/write or many times read-only).</p>
 <dt id="kubelib.PersistentVolumeClaim.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.PersistentVolumeClaim.create_path">
@@ -1171,6 +1397,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.PersistentVolumeClaim.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1183,6 +1419,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.PersistentVolumeClaim.aliases">
@@ -1202,6 +1443,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.PersistentVolumeClaim.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.PersistentVolumeClaim.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.PersistentVolumeClaim.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1249,6 +1495,19 @@ sub-classes.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1327,6 +1586,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Pod.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Pod.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1339,6 +1608,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Pod.wait_for_pod">
@@ -1386,6 +1660,11 @@ the resources of this type in this namespace/context</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="kubelib.Pod.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Pod.secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="kubelib.Pod.single_uri">
 <code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Pod.single_uri" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1422,6 +1701,19 @@ nodes.</p>
 <dt id="kubelib.ReplicationController.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ReplicationController.create_path">
@@ -1492,6 +1784,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ReplicationController.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ReplicationController.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1504,6 +1806,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ReplicationController.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.ReplicationController.aliases">
@@ -1523,6 +1830,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.ReplicationController.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ReplicationController.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ReplicationController.secrets">
+<code class="descname">secrets</code><em class="property"> = True</em><a class="headerlink" href="#kubelib.ReplicationController.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1559,6 +1871,19 @@ which backends are in that set?</p>
 <dt id="kubelib.Service.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Service.create_path">
@@ -1629,6 +1954,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Service.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Service.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1641,6 +1976,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Service.aliases">
@@ -1660,6 +2000,11 @@ the resources of this type in this namespace/context</p>
 <dl class="attribute">
 <dt id="kubelib.Service.list_uri">
 <code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Service.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Service.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Service.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1692,6 +2037,19 @@ more information.</p>
 <dt id="kubelib.Secret.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Secret.create">
@@ -1767,6 +2125,21 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Secret.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.replace">
+<code class="descname">replace</code><span class="sig-paren">(</span><em>name</em>, <em>dict_of_secrets</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.replace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Secret.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1779,6 +2152,11 @@ the resources of this type in this namespace/context</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Secret.aliases">
@@ -1801,13 +2179,18 @@ the resources of this type in this namespace/context</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="kubelib.Secret.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Secret.secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="kubelib.Secret.single_uri">
 <code class="descname">single_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}/{name}'</em><a class="headerlink" href="#kubelib.Secret.single_uri" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="kubelib.Secret.url_type">
-<code class="descname">url_type</code><em class="property"> = 'secret'</em><a class="headerlink" href="#kubelib.Secret.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'secrets'</em><a class="headerlink" href="#kubelib.Secret.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1831,6 +2214,19 @@ purely additive, rules may only omit permissions they do not wish to grant.</p>
 <dt id="kubelib.Role.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Role.create_path">
@@ -1901,6 +2297,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Role.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Role.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Role.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -1914,6 +2320,11 @@ the resources of this type in this namespace/context</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.Role.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="kubelib.Role.aliases">
 <code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.Role.aliases" title="Permalink to this definition">¶</a></dt>
@@ -1921,7 +2332,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.Role.api_base">
-<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.Role.api_base" title="Permalink to this definition">¶</a></dt>
+<code class="descname">api_base</code><em class="property"> = '/apis/rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.Role.api_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1931,7 +2342,12 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.Role.list_uri">
-<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.Role.list_uri" title="Permalink to this definition">¶</a></dt>
+<code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.Role.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.Role.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.Role.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1941,7 +2357,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.Role.url_type">
-<code class="descname">url_type</code><em class="property"> = 'role'</em><a class="headerlink" href="#kubelib.Role.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'roles'</em><a class="headerlink" href="#kubelib.Role.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1961,6 +2377,19 @@ well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)</p>
 <dt id="kubelib.ClusterRole.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ClusterRole.create_path">
@@ -2031,6 +2460,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ClusterRole.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRole.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ClusterRole.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -2044,6 +2483,11 @@ the resources of this type in this namespace/context</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.ClusterRole.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="kubelib.ClusterRole.aliases">
 <code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.ClusterRole.aliases" title="Permalink to this definition">¶</a></dt>
@@ -2051,7 +2495,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRole.api_base">
-<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRole.api_base" title="Permalink to this definition">¶</a></dt>
+<code class="descname">api_base</code><em class="property"> = '/apis/rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRole.api_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2061,7 +2505,12 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRole.list_uri">
-<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRole.list_uri" title="Permalink to this definition">¶</a></dt>
+<code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRole.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRole.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.ClusterRole.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2071,7 +2520,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRole.url_type">
-<code class="descname">url_type</code><em class="property"> = 'clusterrole'</em><a class="headerlink" href="#kubelib.ClusterRole.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'clusterroles'</em><a class="headerlink" href="#kubelib.ClusterRole.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -2096,6 +2545,19 @@ in multiple namespaces.</p>
 <dt id="kubelib.RoleBinding.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.RoleBinding.create_path">
@@ -2166,6 +2628,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.RoleBinding.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.RoleBinding.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.RoleBinding.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -2179,6 +2651,11 @@ the resources of this type in this namespace/context</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.RoleBinding.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="kubelib.RoleBinding.aliases">
 <code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.RoleBinding.aliases" title="Permalink to this definition">¶</a></dt>
@@ -2186,7 +2663,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.RoleBinding.api_base">
-<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.RoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
+<code class="descname">api_base</code><em class="property"> = '/apis/rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.RoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2196,7 +2673,12 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.RoleBinding.list_uri">
-<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.RoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.RoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.RoleBinding.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.RoleBinding.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2206,7 +2688,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.RoleBinding.url_type">
-<code class="descname">url_type</code><em class="property"> = 'rolebinding'</em><a class="headerlink" href="#kubelib.RoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'rolebindings'</em><a class="headerlink" href="#kubelib.RoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -2225,6 +2707,19 @@ the resources of this type in this namespace/context</p>
 <dt id="kubelib.ClusterRoleBinding.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.apply_secrets">
+<code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.apply_secrets" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this resource type support secrets and a vault client has
+been assigned we want to check vault to see if there are any
+secrets for this resource.  If there are we want to extract
+the secrets from vault and create them as kubernetes secrets.
+We&#8217;re also going to patch into the resource yaml to make the
+secrets available as environmentals.</p>
+<p>TODO: support &#8216;type&#8217;s other than &#8216;env&#8217; to automate putting
+files into the container.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ClusterRoleBinding.create_path">
@@ -2295,6 +2790,16 @@ the resources of this type in this namespace/context</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ClusterRoleBinding.get_secrets">
+<code class="descname">get_secrets</code><span class="sig-paren">(</span><em>pod_name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.get_secrets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>name</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ClusterRoleBinding.replace_path">
 <code class="descname">replace_path</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.replace_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple kubectl replace wrapper.</p>
@@ -2308,6 +2813,11 @@ the resources of this type in this namespace/context</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="kubelib.ClusterRoleBinding.simple_name">
+<code class="descname">simple_name</code><span class="sig-paren">(</span><em>desc</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.simple_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="kubelib.ClusterRoleBinding.aliases">
 <code class="descname">aliases</code><em class="property"> = []</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.aliases" title="Permalink to this definition">¶</a></dt>
@@ -2315,7 +2825,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRoleBinding.api_base">
-<code class="descname">api_base</code><em class="property"> = 'rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
+<code class="descname">api_base</code><em class="property"> = '/apis/rbac.authorization.k8s.io/v1alpha1'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.api_base" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2325,7 +2835,12 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRoleBinding.list_uri">
-<code class="descname">list_uri</code><em class="property"> = '/namespaces/{namespace}/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<code class="descname">list_uri</code><em class="property"> = '/{resource_type}'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.list_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="kubelib.ClusterRoleBinding.secrets">
+<code class="descname">secrets</code><em class="property"> = False</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.secrets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -2335,7 +2850,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.ClusterRoleBinding.url_type">
-<code class="descname">url_type</code><em class="property"> = 'clusterrolebinding'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'clusterrolebindings'</em><a class="headerlink" href="#kubelib.ClusterRoleBinding.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
