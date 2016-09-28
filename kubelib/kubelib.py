@@ -718,6 +718,7 @@ class Namespace(CreateIfMissingActor):
                 sa.create("default")
             except sh.ErrorReturnCode_1 as err:
                 LOG.error(err)
+                LOG.error('(ignoring)')
 
         return True
 
