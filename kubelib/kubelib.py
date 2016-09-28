@@ -526,17 +526,20 @@ class ActorBase(ResourceBase):
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
-            # for v in desc.spec.template.spec.containers[0].env:
-            #     if v.name in envdict:
-            #         pass
-            #     else:
-            #         env.append(v.toDict())
+            for index, container in enumerate(desc.spec.template.spec.containers)
+                myenv = list(env)
+                for v in container.env:
+                    if v.name in envdict:
+                        LOG.info('Replacing env %s', v.name)
+                    else:
+                        LOG.info('Passing env %s through', v.name)
+                        myenv.append(v.toDict())
 
-            reimage(
-                filename=filename,
-                xpath="spec.template.spec.containers.0.env",
-                newvalue=env
-            )
+                reimage(
+                    filename=filename,
+                    xpath="spec.template.spec.containers.%i.env" % index,
+                    newvalue=myenv
+                )
 
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
