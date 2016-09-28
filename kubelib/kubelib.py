@@ -526,7 +526,7 @@ class ActorBase(ResourceBase):
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
-            for index, container in enumerate(desc.spec.template.spec.containers)
+            for index, container in enumerate(desc.spec.template.spec.containers):
                 myenv = list(env)
                 for v in container.env:
                     if v.name in envdict:
