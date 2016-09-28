@@ -528,6 +528,7 @@ class ActorBase(ResourceBase):
             # new secrets override old ones
             for index, container in enumerate(desc.spec.template.spec.containers):
                 myenv = list(env)
+                LOG.info('container: %s', container)
                 for v in container.env:
                     if v.name in envdict:
                         LOG.info('Replacing env %s', v.name)
