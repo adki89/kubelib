@@ -1,7 +1,7 @@
 Kubelib
 *******
 
-kubelib both wraps kubectl and make direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.
+kubelib both wraps kubectl and makes direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.
 
 This module makes use of the "bunch" python module for object return values.
 
@@ -31,7 +31,7 @@ KubeUtils
     .. autoclass:: kubelib.KubeUtils
         :member-order: groupwise
 
-Kuberentes
+Kubernetes
 ----------
 
     .. autoclass:: kubelib.Kubernetes
@@ -40,16 +40,40 @@ Kuberentes
 Resources
 ---------
 
-Deployment
-^^^^^^^^^^
+ConfigMap
+^^^^^^^^^
 
-    .. autoclass:: kubelib.Deployment
+    .. autoclass:: kubelib.ConfigMap
         :member-order: groupwise
 
 DaemonSet
 ^^^^^^^^^
 
     .. autoclass:: kubelib.DaemonSet
+        :member-order: groupwise
+
+Deployment
+^^^^^^^^^^
+
+    .. autoclass:: kubelib.Deployment
+        :member-order: groupwise
+
+HorizontalPodAutoscaler
+^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.HorizontalPodAutoscaler
+        :member-order: groupwise
+
+Ingress
+^^^^^^^
+
+    .. autoclass:: kubelib.Ingress
+        :member-order: groupwise
+
+Job
+^^^
+
+    .. autoclass:: kubelib.Job
         :member-order: groupwise
 
 Namespace
@@ -76,6 +100,12 @@ PersistentVolumeClaim
     .. autoclass:: kubelib.PersistentVolumeClaim
         :member-order: groupwise
 
+PetSet
+^^^^^^
+
+    .. autoclass:: kubelib.PetSet
+        :member-order: groupwise
+
 Pod
 ^^^
 
@@ -88,27 +118,20 @@ ReplicationController
     .. autoclass:: kubelib.ReplicationController
         :member-order: groupwise
 
-Service
-^^^^^^^
-
-    .. autoclass:: kubelib.Service
-        :member-order: groupwise
-
 Secret
 ^^^^^^
 
     .. autoclass:: kubelib.Secret
         :member-order: groupwise
 
+Service
+^^^^^^^
+
+    .. autoclass:: kubelib.Service
+        :member-order: groupwise
 
 Role Based Access Control (RBAC)
 --------------------------------
-
-Role
-^^^^
-
-    .. autoclass:: kubelib.Role
-        :member-order: groupwise
 
 ClusterRole
 ^^^^^^^^^^^
@@ -116,14 +139,26 @@ ClusterRole
     .. autoclass:: kubelib.ClusterRole
         :member-order: groupwise
 
-RoleBinding
-^^^^^^^^^^^
-
-    .. autoclass:: kubelib.RoleBinding
-        :member-order: groupwise
-
 ClusterRoleBinding
 ^^^^^^^^^^^^^^^^^^
 
     .. autoclass:: kubelib.ClusterRoleBinding
+        :member-order: groupwise
+
+NetworkPolicy
+^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.NetworkPolicy
+        :member-order: groupwise
+
+Role
+^^^^
+
+    .. autoclass:: kubelib.Role
+        :member-order: groupwise
+
+RoleBinding
+^^^^^^^^^^^
+
+    .. autoclass:: kubelib.RoleBinding
         :member-order: groupwise

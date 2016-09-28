@@ -52,7 +52,7 @@ allowed_re = re.compile(r"^[-a-z0-9]$")
 passing_re = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 PREFIX = ""
-SUFFIX = ["-kube", "-master"]
+SUFFIX = ["-kube", "-master", "-kubernetes"]
 
 
 class InvalidBranch(Exception):
@@ -133,7 +133,9 @@ def _make_namespace(branch=None):
     as_list = branch.split('-')
     if as_list:
         # I am sorry.
-        branch = '-'.join([element for index, element in enumerate(as_list) if as_list.index(element) == index])
+        branch = '-'.join(
+            [element for index, element in enumerate(as_list) if as_list.index(element) == index]
+        )
 
     if not passing_re.match(branch):
         name = ""

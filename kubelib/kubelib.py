@@ -1123,15 +1123,28 @@ def reimage(filename, xpath, newvalue, save_to=None):
     return yml
 
 RESOURCE_CLASSES = (
+    # resources
     ConfigMap,
-    Deployment, DaemonSet, HorizontalPodAutoscaler,
+    DaemonSet,
+    Deployment,
+    HorizontalPodAutoscaler,
     Ingress,
-    Job, Namespace, NetworkPolicy, Node,
-    PersistentVolume, PersistentVolumeClaim,
+    Job,
+    Namespace,
+    Node,
+    PersistentVolume,
+    PersistentVolumeClaim,
     PetSet,
-    Pod, ReplicationController,
-    Role, ClusterRole, RoleBinding,
-    ClusterRoleBinding, Service, Secret
+    Pod,
+    ReplicationController,
+    Secret,
+    Service,
+    # RBAC
+    ClusterRole,
+    ClusterRoleBinding,
+    NetworkPolicy,
+    Role,
+    RoleBinding,
 )
 
 TYPE_TO_KIND = {}
