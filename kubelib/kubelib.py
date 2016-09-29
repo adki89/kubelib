@@ -529,7 +529,7 @@ class ActorBase(ResourceBase):
             for index, container in enumerate(desc.spec.template.spec.containers):
                 myenv = list(env)
                 LOG.info('container: %s', container)
-                for v in container.env:
+                for v in container.get("env", []):
                     if v.name in envdict:
                         LOG.info('Replacing env %s', v.name)
                     else:
