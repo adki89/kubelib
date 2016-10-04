@@ -526,21 +526,25 @@ class ActorBase(ResourceBase):
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
-            for index, container in enumerate(desc.spec.template.spec.containers):
-                myenv = list(env)
-                LOG.info('container: %s', container)
-                for v in container.get("env", []):
-                    if v.name in envdict:
-                        LOG.info('Replacing env %s', v.name)
-                    else:
-                        LOG.info('Passing env %s through', v.name)
-                        myenv.append(v.toDict())
+            if "template" in desc.spec:
+                for index, container in enumerate(desc.spec.template.spec.containers):
+                    myenv = list(env)
+                    LOG.info('container: %s', container)
+                    for v in container.get("env", []):
+                        if v.name in envdict:
+                            LOG.info('Replacing env %s', v.name)
+                        else:
+                            LOG.info('Passing env %s through', v.name)
+                            myenv.append(v.toDict())
 
-                reimage(
-                    filename=filename,
-                    xpath="spec.template.spec.containers.%i.env" % index,
-                    newvalue=myenv
-                )
+                    reimage(
+                        filename=filename,
+                        xpath="spec.template.spec.containers.%i.env" % index,
+                        newvalue=myenv
+                    )
+
+            # does it make sense for an ingress controller
+            # to have environmental secrets?
 
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
