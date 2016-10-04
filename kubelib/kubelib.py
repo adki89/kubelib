@@ -678,7 +678,7 @@ class HorizontalPodAutoscaler(CreateIfMissingActor):
 class Ingress(ReplaceActor):
     """An Ingress is a collection of rules that allow inbound
     connections to reach the cluster services."""
-    url_type = "ingress"
+    url_type = "ingresses"
     aliases = ["ing"]
     api_base = "/apis/extensions/v1beta1"
     secrets = True
