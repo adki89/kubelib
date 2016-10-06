@@ -25,6 +25,7 @@ setup(
         'PyYaml',
         'sh',
         'glob2',
+        'docopt'
     ],
     entry_points={
         'console_scripts': [
