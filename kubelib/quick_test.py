@@ -44,4 +44,4 @@ LOG = logging.getLogger(__name__)
 #print repr(k.delete_namespace("jkane-test"))
 #print ("\n\n")
 for ns in kubelib.Namespace(kubelib.KubeConfig()).get_list():
-	print ns.metadata.name
+	print(ns.metadata.name)

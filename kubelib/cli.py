@@ -83,7 +83,7 @@ def fix_length(branch):
     else:
         # too long, truncate but add a bit-o-hash to increase the
         # odds that we're still as unique as the branch name
-        branch_hash = hashlib.sha256(branch).hexdigest()
+        branch_hash = hashlib.sha256(branch.encode('ascii')).hexdigest()
         # prefix it, cut it at the 60th character and add 3
         # characters of the hashed 'full' branch name.  Even
         # if you take a long branch and add -v2, you'll get
