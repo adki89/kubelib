@@ -48,8 +48,8 @@ LOG = logging.getLogger(__name__)
 # must be a DNS label (at most 63 characters, matching regex
 # [a-z0-9]([-a-z0-9]*[a-z0-9])?): e.g. "my-name"
 allowed_first_re = re.compile(r"^[a-z0-9]$")
-allowed_re = re.compile(r"^[-a-z0-9]$")
-passing_re = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
+allowed_re = re.compile(r"^[a-z0-9]$")
+passing_re = re.compile(r"^[a-z0-9]([a-z0-9]*[a-z0-9])?$")
 
 PREFIX = ""
 SUFFIX = ["-kube", "-master", "-kubernetes"]
