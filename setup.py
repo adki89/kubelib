@@ -12,7 +12,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.2',
+    version='0.2.3',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',

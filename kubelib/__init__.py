@@ -27,3 +27,7 @@ from .kubelib import (
     Role,
     RoleBinding,
 )
+
+from .cli import (
+    _make_namespace
+)
