@@ -52,7 +52,7 @@ allowed_re = re.compile(r"^[-a-z0-9]$")
 passing_re = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 PREFIX = ""
-SUFFIX = ["-kube", "-master", "-kubernetes"]
+SUFFIX = ["-kube", "-master", "-kubernetes", "-"]
 
 
 class InvalidBranch(Exception):
@@ -91,7 +91,7 @@ def fix_length(branch):
         branch = add_prefix(branch)[:60] + branch_hash[:3]
         return branch
 
-def _make_namespace(branch=None):
+def _make_namespace(branch=None, branch_tag=None):
     """
     Take the branch name and return the docker namespace.
 
@@ -127,12 +127,14 @@ def _make_namespace(branch=None):
     if branch is None:
         branch = sys.argv[1]
 
-    if len(sys.argv) == 3:
+    if branch_tag is None and len(sys.argv) == 3:
         # new style, arg for the branch tag
         branch_tag = sys.argv[2]
         branch_tag = branch_tag.replace('-', '')
         branch = branch.replace('-', '')
 
+        branch = branch + "-" + branch_tag
+    elif branch_tag:
         branch = branch + "-" + branch_tag
 
     branch = branch.lower()
