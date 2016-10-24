@@ -1,4 +1,4 @@
-bunch
+munch
 coverage
 pytest
 pytest-cov

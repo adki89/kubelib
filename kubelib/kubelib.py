@@ -11,7 +11,7 @@ import tempfile
 import time
 import yaml
 
-import bunch
+import munch
 import glob2
 import requests
 import sh
@@ -44,7 +44,7 @@ class KubeConfig(object):
         """
         self.config = None
         with open(os.path.expanduser("~/.kube/config")) as handle:
-            self.config = bunch.Bunch.fromYAML(
+            self.config = munch.Munch.fromYAML(
                 handle.read()
             )
 
@@ -166,7 +166,7 @@ class KubeUtils(KubeConfig):
 
             with open(resource_fn, 'r') as handle:
                 resource_content = handle.read()
-                resource_desc = bunch.Bunch.fromYAML(
+                resource_desc = munch.Munch.fromYAML(
                     resource_content
                 )
 
@@ -306,24 +306,24 @@ class ResourceBase(Kubernetes):
     single_uri = "/namespaces/{namespace}/{resource_type}/{name}"
 
     def get_list(self):
-        """Retrieve a list of bunch objects describing all
+        """Retrieve a list of munch objects describing all
         the resources of this type in this namespace/context
         """
         url = self.list_uri.format(
             namespace=self.config.namespace,
             resource_type=self.url_type
         )
-        resources = bunch.bunchify(
+        resources = munch.munchify(
             self._get(url)
         )
         # LOG.debug('get_list resources: %r', resources)
         return resources.get("items", [])
 
     def get(self, name):
-        """Retrieve a single bunch object describing one
+        """Retrieve a single munch object describing one
         resource by name
         """
-        return bunch.bunchify(
+        return munch.munchify(
             self._get(self.single_uri.format(
                 namespace=self.config.namespace,
                 resource_type=self.url_type,
@@ -409,7 +409,7 @@ class ActorBase(ResourceBase):
         """NOOP Placeholder to be overridden by Actor
         sub-classes.
 
-        :param desc: Bunch resource object
+        :param desc: Munch resource object
         :param filename: Filename associated with the resource
         """
         return
@@ -1196,7 +1196,7 @@ class Kubectl(KubeUtils):
         cache = {}
         for resource_fn in glob2.glob(glob_path):
             with open(resource_fn) as handle:
-                resource_desc = bunch.Bunch.fromYAML(
+                resource_desc = munch.Munch.fromYAML(
                     yaml.load(handle.read())
                 )
 
