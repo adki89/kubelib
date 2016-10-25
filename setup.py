@@ -21,7 +21,7 @@ setup(
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
-        'bunch',
+        'munch',
         'PyYaml',
         'sh',
         'glob2',
