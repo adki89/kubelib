@@ -372,7 +372,7 @@ class ActorBase(ResourceBase):
         LOG.info('(=) kubectl apply --record -f %s', path_or_fn)
         sh.kubectl.apply(
             '--record',
-            "-f {}".format(path_or_fn),
+            "-f", path_or_fn,
             context=self.config.context,
             namespace=self.config.namespace
         )
