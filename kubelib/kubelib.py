@@ -364,6 +364,19 @@ class ActorBase(ResourceBase):
     cache = None
     secrets = False
 
+    def apply_file(self, path_or_fn):
+        """Simple kubectl apply wrapper.
+
+        :param path_or_fn: Path or filename of yaml resource descriptions
+        """
+        LOG.info('(=) kubectl apply --record -f %s', path_or_fn)
+        sh.kubectl.apply(
+            '--record',
+            "-f {}".format(path_or_fn),
+            context=self.config.context,
+            namespace=self.config.namespace
+        )
+
     def replace_path(self, path_or_fn):
         """Simple kubectl replace wrapper.
 
@@ -545,6 +558,12 @@ class ActorBase(ResourceBase):
 
             # does it make sense for an ingress controller
             # to have environmental secrets?
+
+class ApplyActor(ActorBase):
+    """Do a kubectl apply on the resource"""
+    def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+        self.apply_file(filename)
 
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
@@ -957,7 +976,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
-class Service(CreateIfMissingActor):
+class Service(ApplyActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
     are not resurrected. ReplicationControllers in particular create and
     destroy Pods dynamically (e.g. when scaling up or down or when doing
@@ -969,7 +988,7 @@ class Service(CreateIfMissingActor):
     which backends are in that set?"""
     url_type = "services"
 
-class Secret(CreateIfMissingActor):
+class Secret(ReplaceActor):
     """Objects of type secret are intended to hold sensitive information,
     such as passwords, OAuth tokens, and ssh keys. Putting this information
     in a secret is safer and more flexible than putting it verbatim in a
