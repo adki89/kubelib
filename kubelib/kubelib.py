@@ -976,7 +976,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
-class Service(ApplyActor):
+class Service(CreateIfMissingActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
     are not resurrected. ReplicationControllers in particular create and
     destroy Pods dynamically (e.g. when scaling up or down or when doing
