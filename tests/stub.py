@@ -1,5 +1,18 @@
 import yaml
 
+
+class KubeCluster(object):
+    server = "http://localhost"
+
+class KubeConfig(object):
+    """Stub kubeconfig"""
+    cert = None
+    ca = None
+
+    namespace = "fake-namespace"
+    cluster = KubeCluster()
+
+
 class kubectl_get(object):
 	"""object get-er"""
 	def namespaces(self, *args, **kwargs):

@@ -559,6 +559,28 @@ class ActorBase(ResourceBase):
             # does it make sense for an ingress controller
             # to have environmental secrets?
 
+class ReadMergeApplyActor(ActorBase):
+    """
+    Do a kubectl get, update with the contents of filename,
+    write it, then apply it.
+    """
+    def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+
+        # pull from the server
+        # try:
+        remote = self.get(desc.metadata.name)
+        # except 404
+
+        # merge our file on top of it
+        remote.update(desc)
+
+        # write to disk
+        with open(filename, 'w') as h:
+            h.write(remote.json())
+
+        self.apply_file(filename)
+
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource"""
     def apply(self, desc, filename):
@@ -976,7 +998,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
-class Service(CreateIfMissingActor):
+class Service(ReadMergeApplyActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
     are not resurrected. ReplicationControllers in particular create and
     destroy Pods dynamically (e.g. when scaling up or down or when doing
