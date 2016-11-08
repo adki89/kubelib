@@ -16,6 +16,8 @@ import glob2
 import requests
 import sh
 
+my_requests = requests
+
 LOG = logging.getLogger(__name__)
 logging.info('Starting...')
 
@@ -98,6 +100,8 @@ class KubeConfig(object):
                 self.user["client-key"]
             ))
         )
+
+        self.req = None
 
         self.vault_client = None
 
@@ -264,9 +268,13 @@ class Kubernetes(object):
 
     def __init__(self, kubeconfig):
         self.config = kubeconfig
-        self.client = requests.Session()
-        self.client.cert = kubeconfig.cert
-        self.client.verify = self.config.ca
+        if self.config.req is None:
+            self.client = requests.Session()
+            self.client.cert = kubeconfig.cert
+            self.client.verify = self.config.ca
+        else:
+            self.client = self.config.req
+
         self.kubectl = sh.kubectl
 
     def _get(self, url, **kwargs):

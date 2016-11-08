@@ -1,0 +1,61 @@
+{
+  "items": [
+    {
+      "status": {
+        "phase": "Active"
+      },
+      "spec": {
+        "finalizers": [
+          "kubernetes"
+        ]
+      },
+      "metadata": {
+        "resourceVersion": "15780123",
+        "creationTimestamp": "2016-08-17T01:39:55Z",
+        "name": "alpha",
+        "selfLink": "/api/v1/namespaces/alpha",
+        "uid": "8033e410-641b-11e6-904c-005056b52d55"
+      }
+    },
+    {
+      "status": {
+        "phase": "Active"
+      },
+      "spec": {
+        "finalizers": [
+          "kubernetes"
+        ]
+      },
+      "metadata": {
+        "resourceVersion": "33813983",
+        "creationTimestamp": "2016-09-10T01:15:42Z",
+        "name": "beta",
+        "selfLink": "/api/v1/namespaces/beta",
+        "uid": "17ae8dd6-76f4-11e6-b0b4-005056b5020d"
+      }
+    },
+    {
+      "status": {
+        "phase": "Active"
+      },
+      "spec": {
+        "finalizers": [
+          "kubernetes"
+        ]
+      },
+      "metadata": {
+        "resourceVersion": "42963968",
+        "creationTimestamp": "2016-11-04T21:09:30Z",
+        "name": "gamma",
+        "selfLink": "/api/v1/namespaces/gamma",
+        "uid": "fa256fa5-a2d2-11e6-80be-005056b5020d"
+      }
+    }
+  ],
+  "kind": "NamespaceList",
+  "apiVersion": "v1",
+  "metadata": {
+    "selfLink": "/api/v1/namespaces",
+    "resourceVersion": "43371308"
+  }
+}

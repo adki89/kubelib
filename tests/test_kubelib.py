@@ -12,14 +12,24 @@ class BasicTestSuite(unittest.TestCase):
     """Basic test cases."""
 
     def setUp(self):
-        self.kube = stub.KubeConfig()
+
+        self.kube = stub.KubeConfig(
+            context="dev-seb",
+            namespace=None
+        )
 
     def test_does_it_import(self):
         assert True
 
     def test_getnamespaces(self):
         ns = kubelib.Namespace(self.kube).get_list()
-        self.assertEqual(ns, [])
+
+        # canned data has 3 namespaces
+        self.assertEqual(len(ns), 3)
+
+        # and they have these names
+        for namespace in ns:
+            assert namespace.metadata.name in ["alpha", "beta", "gamma"]
 
     # def test_createdestroy_namespaces(self):
     #     ns = self.kube.get_namespaces()
