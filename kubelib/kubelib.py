@@ -532,17 +532,23 @@ class ActorBase(ResourceBase):
 
             if secrets:
                 if Secret(self.config).exists(secret_name):
-                    LOG.info('Secret %r already exists.  Replacing it.', secret_name)
+                    LOG.info(
+                        'Secret %r already exists.  Replacing keys: %s',
+                        secret_name, secrets.keys()
+                    )
                     Secret(self.config).replace(secret_name, secrets)
                 else:
-                    LOG.info('Secret %r does not exist.  Creating it.', secret_name)
+                    LOG.info(
+                        'Secret %r does not exist.  Creating keys: %s',
+                        secret_name, secrets.keys()
+                    )
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
             if "template" in desc.spec:
                 for index, container in enumerate(desc.spec.template.spec.containers):
                     myenv = list(env)
-                    LOG.info('container: %s', container)
+                    # LOG.info('container: %s', container)
                     for v in container.get("env", []):
                         if v.name in envdict:
                             LOG.info('Replacing env %s', v.name)
