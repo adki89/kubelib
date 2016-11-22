@@ -306,12 +306,18 @@ class Kubernetes(object):
         response = self.client.delete(url)
         return response.json()
 
-class ResourceBase(Kubernetes):
-    """Base class for particular kinds of kubernetes resources.
+class ActorBase(Kubernetes):
+    """Base class for the Actors (the things that actually *do* stuff).
+    Different kubernetes resource types need to be manage a bit
+    differently.  The Actor sub-classes contain those differences.
     """
+
     url_type = None
     list_uri = "/namespaces/{namespace}/{resource_type}"
     single_uri = "/namespaces/{namespace}/{resource_type}/{name}"
+    aliases = []
+    cache = None
+    secrets = False
 
     def get_list(self):
         """Retrieve a list of munch objects describing all
@@ -362,15 +368,6 @@ class ResourceBase(Kubernetes):
             )
         except sh.ErrorReturnCode as err:
             logging.error("Unexpected response: %r", err)
-
-class ActorBase(ResourceBase):
-    """Base class for the Actors (the things that actually *do* stuff).
-    Different kubernetes resource types need to be manage a bit
-    differently.  The Actor sub-classes contain those differences.
-    """
-    aliases = []
-    cache = None
-    secrets = False
 
     def apply_file(self, path_or_fn):
         """Simple kubectl apply wrapper.
@@ -591,7 +588,7 @@ class ReadMergeApplyActor(ActorBase):
 
         # write to disk
         with open(filename, 'w') as h:
-            h.write(remote.json())
+            h.write(remote.toJSON())
 
         self.apply_file(filename)
 
