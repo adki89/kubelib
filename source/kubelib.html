@@ -41,7 +41,7 @@
             
   <div class="section" id="kubelib">
 <h1>Kubelib<a class="headerlink" href="#kubelib" title="Permalink to this headline">¶</a></h1>
-<p>kubelib both wraps kubectl and make direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.</p>
+<p>kubelib both wraps kubectl and makes direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.</p>
 <p>This module makes use of the &#8220;bunch&#8221; python module for object return values.</p>
 <p><a class="reference external" href="https://github.com/dsc/bunch">https://github.com/dsc/bunch</a></p>
 <p>tldr: you can use them as dictionaries (ala pod[&#8216;metadata&#8217;][&#8216;name&#8217;]) or with attributes (ala pod.metadata.name).  I think this makes code with deeply nested dictionaries easier to read.</p>
@@ -443,6 +443,20 @@ strings that do not contain sensitive information.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ConfigMap.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ConfigMap.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ConfigMap.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ConfigMap.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -533,14 +547,14 @@ enemies.cheat.level=noGoodRotten</p>
 <dl class="method">
 <dt id="kubelib.ConfigMap.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ConfigMap.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ConfigMap.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ConfigMap.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -629,6 +643,20 @@ Deleting a Daemon Set will clean up the pods it created.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.DaemonSet.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.DaemonSet.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -698,14 +726,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.DaemonSet.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.DaemonSet.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.DaemonSet.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -797,6 +825,20 @@ existing ones by new ones.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Deployment.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Deployment.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -866,14 +908,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Deployment.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Deployment.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Deployment.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -967,6 +1009,20 @@ the target specified by user.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.HorizontalPodAutoscaler.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.HorizontalPodAutoscaler.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.HorizontalPodAutoscaler.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.HorizontalPodAutoscaler.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -1036,14 +1092,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.HorizontalPodAutoscaler.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.HorizontalPodAutoscaler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.HorizontalPodAutoscaler.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.HorizontalPodAutoscaler.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1130,6 +1186,20 @@ connections to reach the cluster services.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Ingress.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Ingress.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Ingress.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Ingress.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -1199,14 +1269,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Ingress.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Ingress.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Ingress.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Ingress.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1271,7 +1341,7 @@ the resources of this type in this namespace/context</p>
 
 <dl class="attribute">
 <dt id="kubelib.Ingress.url_type">
-<code class="descname">url_type</code><em class="property"> = 'ingress'</em><a class="headerlink" href="#kubelib.Ingress.url_type" title="Permalink to this definition">¶</a></dt>
+<code class="descname">url_type</code><em class="property"> = 'ingresses'</em><a class="headerlink" href="#kubelib.Ingress.url_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1289,6 +1359,20 @@ the resources of this type in this namespace/context</p>
 <dt id="kubelib.Job.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Job.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Job.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Job.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Job.apply_secrets">
@@ -1360,14 +1444,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Job.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Job.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Job.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Job.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1452,6 +1536,20 @@ physical cluster. These virtual clusters are called namespaces.</p>
 <dt id="kubelib.Namespace.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Namespace.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Namespace.apply_secrets">
@@ -1545,14 +1643,14 @@ files into the container.</p>
 <dl class="method">
 <dt id="kubelib.Namespace.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Namespace.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Namespace.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1647,10 +1745,24 @@ sub-classes.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>desc</strong> &#8211; Bunch resource object</li>
+<li><strong>desc</strong> &#8211; Munch resource object</li>
 <li><strong>filename</strong> &#8211; Filename associated with the resource</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Node.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
 </tr>
 </tbody>
 </table>
@@ -1726,14 +1838,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Node.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Node.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Node.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1825,6 +1937,20 @@ system.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.PersistentVolume.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.PersistentVolume.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -1894,14 +2020,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.PersistentVolume.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.PersistentVolume.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolume.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -1997,6 +2123,20 @@ read/write or many times read-only).</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.PersistentVolumeClaim.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.PersistentVolumeClaim.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -2066,14 +2206,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.PersistentVolumeClaim.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.PersistentVolumeClaim.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PersistentVolumeClaim.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -2176,6 +2316,20 @@ anchored to the underlying physical infrastructure.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.PetSet.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PetSet.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.PetSet.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PetSet.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -2245,14 +2399,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.PetSet.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PetSet.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.PetSet.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.PetSet.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -2348,10 +2502,24 @@ sub-classes.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>desc</strong> &#8211; Bunch resource object</li>
+<li><strong>desc</strong> &#8211; Munch resource object</li>
 <li><strong>filename</strong> &#8211; Filename associated with the resource</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Pod.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
 </tr>
 </tbody>
 </table>
@@ -2434,14 +2602,14 @@ the kubectl behavior is to pick the first container if possible</p>
 <dl class="method">
 <dt id="kubelib.Pod.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Pod.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Pod.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -2563,6 +2731,20 @@ nodes.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ReplicationController.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ReplicationController.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -2632,14 +2814,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.ReplicationController.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ReplicationController.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ReplicationController.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -2717,7 +2899,7 @@ the resources of this type in this namespace/context</p>
 <div><dl class="class">
 <dt id="kubelib.Secret">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Secret</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.ReplaceActor</span></code></p>
 <p>Objects of type secret are intended to hold sensitive information,
 such as passwords, OAuth tokens, and ssh keys. Putting this information
 in a secret is safer and more flexible than putting it verbatim in a
@@ -2727,6 +2909,20 @@ more information.</p>
 <dt id="kubelib.Secret.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Secret.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Secret.apply_secrets">
@@ -2803,14 +2999,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Secret.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Secret.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Secret.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -2893,7 +3089,7 @@ the resources of this type in this namespace/context</p>
 <div><dl class="class">
 <dt id="kubelib.Service">
 <em class="property">class </em><code class="descclassname">kubelib.</code><code class="descname">Service</code><span class="sig-paren">(</span><em>kubeconfig</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.CreateIfMissingActor</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">kubelib.kubelib.ReadMergeApplyActor</span></code></p>
 <p>Kubernetes Pods are mortal. They are born and they die, and they
 are not resurrected. ReplicationControllers in particular create and
 destroy Pods dynamically (e.g. when scaling up or down or when doing
@@ -2907,6 +3103,20 @@ which backends are in that set?</p>
 <dt id="kubelib.Service.apply">
 <code class="descname">apply</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="kubelib.Service.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Service.apply_secrets">
@@ -2978,14 +3188,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Service.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Service.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Service.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -3075,6 +3285,20 @@ well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ClusterRole.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ClusterRole.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -3144,14 +3368,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.ClusterRole.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ClusterRole.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRole.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -3237,6 +3461,20 @@ the resources of this type in this namespace/context</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.ClusterRoleBinding.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.ClusterRoleBinding.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -3306,14 +3544,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.ClusterRoleBinding.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.ClusterRoleBinding.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.ClusterRoleBinding.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -3403,6 +3641,20 @@ allowed by the isolation policy for a given namespace.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.NetworkPolicy.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.NetworkPolicy.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.NetworkPolicy.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.NetworkPolicy.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -3472,14 +3724,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.NetworkPolicy.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.NetworkPolicy.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.NetworkPolicy.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.NetworkPolicy.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -3567,6 +3819,20 @@ purely additive, rules may only omit permissions they do not wish to grant.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.Role.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.Role.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -3636,14 +3902,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.Role.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.Role.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.Role.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
@@ -3735,6 +4001,20 @@ in multiple namespaces.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="kubelib.RoleBinding.apply_file">
+<code class="descname">apply_file</code><span class="sig-paren">(</span><em>path_or_fn</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.apply_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple kubectl apply wrapper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_or_fn</strong> &#8211; Path or filename of yaml resource descriptions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="kubelib.RoleBinding.apply_secrets">
 <code class="descname">apply_secrets</code><span class="sig-paren">(</span><em>desc</em>, <em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.apply_secrets" title="Permalink to this definition">¶</a></dt>
 <dd><p>If this resource type support secrets and a vault client has
@@ -3804,14 +4084,14 @@ delete call instead of going through kubectl.</p>
 <dl class="method">
 <dt id="kubelib.RoleBinding.get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a single bunch object describing one
+<dd><p>Retrieve a single munch object describing one
 resource by name</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="kubelib.RoleBinding.get_list">
 <code class="descname">get_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kubelib.RoleBinding.get_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a list of bunch objects describing all
+<dd><p>Retrieve a list of munch objects describing all
 the resources of this type in this namespace/context</p>
 </dd></dl>
 
