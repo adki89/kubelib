@@ -579,9 +579,16 @@ class ReadMergeApplyActor(ActorBase):
         self.apply_secrets(desc, filename)
 
         # pull from the server
-        # try:
-        remote = self.get(desc.metadata.name)
-        # except 404
+        remote = munch()
+        
+        try:
+            remote = self.get(desc.metadata.name)
+        except Exception as err:
+            LOG.error(
+                '%s failure to retrieve existing resource %s', 
+                err,
+                filename
+            )
 
         # merge our file on top of it
         remote.update(desc)
