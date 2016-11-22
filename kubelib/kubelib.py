@@ -579,7 +579,7 @@ class ReadMergeApplyActor(ActorBase):
         self.apply_secrets(desc, filename)
 
         # pull from the server
-        remote = munch()
+        remote = munch.Munch()
         
         try:
             remote = self.get(desc.metadata.name)
