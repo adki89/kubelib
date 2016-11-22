@@ -579,9 +579,16 @@ class ReadMergeApplyActor(ActorBase):
         self.apply_secrets(desc, filename)
 
         # pull from the server
-        # try:
-        remote = self.get(desc.metadata.name)
-        # except 404
+        remote = munch()
+        
+        try:
+            remote = self.get(desc.metadata.name)
+        except Exception as err:
+            LOG.error(
+                '%s failure to retrieve existing resource %s', 
+                err,
+                filename
+            )
 
         # merge our file on top of it
         remote.update(desc)
@@ -590,7 +597,14 @@ class ReadMergeApplyActor(ActorBase):
         with open(filename, 'w') as h:
             h.write(remote.toJSON())
 
-        self.apply_file(filename)
+        try:
+            self.apply_file(filename)
+        except sh.ErrorReturnCode_1:
+            LOG.error('apply_file failed')
+
+            if self.exists(desc.metadata.name):
+                self.delete_path(filename)
+            self.create_path(filename)
 
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource"""
