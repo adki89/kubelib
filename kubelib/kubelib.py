@@ -597,7 +597,14 @@ class ReadMergeApplyActor(ActorBase):
         with open(filename, 'w') as h:
             h.write(remote.toJSON())
 
-        self.apply_file(filename)
+        try:
+            self.apply_file(filename)
+        except sh.ErrorReturnCode_1:
+            LOG.error('apply_file failed')
+
+            if self.exists(desc.metadata.name):
+                self.delete_path(filename)
+            self.create_path(filename)
 
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource"""
