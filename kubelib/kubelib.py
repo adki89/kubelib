@@ -16,6 +16,8 @@ import glob2
 import requests
 import sh
 
+my_requests = requests
+
 LOG = logging.getLogger(__name__)
 logging.info('Starting...')
 
@@ -98,6 +100,8 @@ class KubeConfig(object):
                 self.user["client-key"]
             ))
         )
+
+        self.req = None
 
         self.vault_client = None
 
@@ -264,9 +268,13 @@ class Kubernetes(object):
 
     def __init__(self, kubeconfig):
         self.config = kubeconfig
-        self.client = requests.Session()
-        self.client.cert = kubeconfig.cert
-        self.client.verify = self.config.ca
+        if self.config.req is None:
+            self.client = requests.Session()
+            self.client.cert = kubeconfig.cert
+            self.client.verify = self.config.ca
+        else:
+            self.client = self.config.req
+
         self.kubectl = sh.kubectl
 
     def _get(self, url, **kwargs):
@@ -532,17 +540,23 @@ class ActorBase(ResourceBase):
 
             if secrets:
                 if Secret(self.config).exists(secret_name):
-                    LOG.info('Secret %r already exists.  Replacing it.', secret_name)
+                    LOG.info(
+                        'Secret %r already exists.  Replacing keys: %s',
+                        secret_name, secrets.keys()
+                    )
                     Secret(self.config).replace(secret_name, secrets)
                 else:
-                    LOG.info('Secret %r does not exist.  Creating it.', secret_name)
+                    LOG.info(
+                        'Secret %r does not exist.  Creating keys: %s',
+                        secret_name, secrets.keys()
+                    )
                     Secret(self.config).create(secret_name, secrets)
 
             # new secrets override old ones
             if "template" in desc.spec:
                 for index, container in enumerate(desc.spec.template.spec.containers):
                     myenv = list(env)
-                    LOG.info('container: %s', container)
+                    # LOG.info('container: %s', container)
                     for v in container.get("env", []):
                         if v.name in envdict:
                             LOG.info('Replacing env %s', v.name)
@@ -558,6 +572,28 @@ class ActorBase(ResourceBase):
 
             # does it make sense for an ingress controller
             # to have environmental secrets?
+
+class ReadMergeApplyActor(ActorBase):
+    """
+    Do a kubectl get, update with the contents of filename,
+    write it, then apply it.
+    """
+    def apply(self, desc, filename):
+        self.apply_secrets(desc, filename)
+
+        # pull from the server
+        # try:
+        remote = self.get(desc.metadata.name)
+        # except 404
+
+        # merge our file on top of it
+        remote.update(desc)
+
+        # write to disk
+        with open(filename, 'w') as h:
+            h.write(remote.json())
+
+        self.apply_file(filename)
 
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource"""
@@ -976,7 +1012,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
-class Service(CreateIfMissingActor):
+class Service(ReadMergeApplyActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
     are not resurrected. ReplicationControllers in particular create and
     destroy Pods dynamically (e.g. when scaling up or down or when doing

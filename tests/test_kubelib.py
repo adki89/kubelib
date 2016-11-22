@@ -4,7 +4,7 @@
 import unittest
 
 from context import kubelib
-from bunch import Bunch
+from munch import Munch
 import sh
 import stub
 
@@ -12,31 +12,40 @@ class BasicTestSuite(unittest.TestCase):
     """Basic test cases."""
 
     def setUp(self):
-        self.kube = kubelib.Kubectl(context='my-context', namespace='my-namespace', dryrun=False)
-        self.kube.kubectl = stub.kubectl
+
+        self.kube = stub.KubeConfig(
+            context="dev-seb",
+            namespace=None
+        )
 
     def test_does_it_import(self):
         assert True
 
     def test_getnamespaces(self):
-        ns = self.kube.get_namespaces()
-        self.assertEqual(ns, [])
+        ns = kubelib.Namespace(self.kube).get_list()
 
-    def test_createdestroy_namespaces(self):
-        ns = self.kube.get_namespaces()
-        self.assertEqual(ns, [])
+        # canned data has 3 namespaces
+        self.assertEqual(len(ns), 3)
 
-        ns = self.kube.create_namespace("new_namespace")
-        assert ns, "Namespace was _not_ created"
+        # and they have these names
+        for namespace in ns:
+            assert namespace.metadata.name in ["alpha", "beta", "gamma"]
 
-        ns = self.kube.get_namespaces()
-        self.assertEqual(ns, ['new_namespace'])
+    # def test_createdestroy_namespaces(self):
+    #     ns = self.kube.get_namespaces()
+    #     self.assertEqual(ns, [])
 
-    def test_resource(self):
-        pod = self.kube.get_resource('pod')
-        pods = self.kube.get_resource('pods')
+    #     ns = self.kube.create_namespace("new_namespace")
+    #     assert ns, "Namespace was _not_ created"
 
-        self.assertEqual(pod, pods)
+    #     ns = self.kube.get_namespaces()
+    #     self.assertEqual(ns, ['new_namespace'])
+
+    # def test_resource(self):
+    #     pod = self.kube.get_resource('pod')
+    #     pods = self.kube.get_resource('pods')
+
+    #     self.assertEqual(pod, pods)
 
 
 if __name__ == '__main__' and __package__ is None:
