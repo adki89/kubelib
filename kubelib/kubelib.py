@@ -578,24 +578,25 @@ class ReadMergeApplyActor(ActorBase):
     def apply(self, desc, filename):
         self.apply_secrets(desc, filename)
 
-        # pull from the server
-        remote = munch.Munch()
-        
-        try:
-            remote = self.get(desc.metadata.name)
-        except Exception as err:
-            LOG.error(
-                '%s failure to retrieve existing resource %s', 
-                err,
-                filename
-            )
+        if self.exists(desc.metadata.name):
+            # pull from the server
+            remote = munch.Munch()
+            
+            try:
+                remote = self.get(desc.metadata.name)
+            except Exception as err:
+                LOG.error(
+                    '%s failure to retrieve existing resource %s', 
+                    err,
+                    filename
+                )
 
-        # merge our file on top of it
-        remote.update(desc)
+            # merge our file on top of it
+            remote.update(desc)
 
-        # write to disk
-        with open(filename, 'w') as h:
-            h.write(remote.toJSON())
+            # write to disk
+            with open(filename, 'w') as h:
+                h.write(remote.toJSON())
 
         try:
             self.apply_file(filename)
