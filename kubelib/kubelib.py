@@ -476,10 +476,10 @@ class ActorBase(Kubernetes):
             return
 
         secret_url = "/secret/{context}/{namespace}/{pod}".format(
-                context=self.config.context,
-                namespace=self.config.namespace,
-                pod=pod_name
-            )
+            context=self.config.context,
+            namespace=self.config.namespace,
+            pod=pod_name
+        )
         LOG.info('Reading secrets for %r', secret_url)
         pod_secrets = {}
         try:

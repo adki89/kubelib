@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
 import os
+
+from setuptools import find_packages, setup
 
 os.chdir(os.path.dirname(__file__))
 with open('README.rst') as f:
@@ -12,7 +13,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.3',
+    version='0.2.4',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',
