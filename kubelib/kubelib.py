@@ -9,12 +9,17 @@ import os
 import shutil
 import tempfile
 import time
-import yaml
+
+import glob2
 
 import munch
-import glob2
+
 import requests
+
 import sh
+
+import yaml
+
 
 my_requests = requests
 
@@ -25,14 +30,18 @@ logging.info('Starting...')
 class TimeOut(Exception):
     """maximum timeout exceeded"""
 
+
 class KubeError(Exception):
     """Generic Kubernetes error wrapper"""
+
 
 class ContextRequired(KubeError):
     """Everything requires a context"""
 
+
 class ClusterNotFound(KubeError):
     """Probably a bad ~/.kube/config"""
+
 
 class KubeConfig(object):
 
@@ -53,7 +62,7 @@ class KubeConfig(object):
         self.context = None
         self.set_context(context)
 
-        #if namespace is None:
+        # if namespace is None:
         # default to the current kubectl namespace
         cluster_name = None
 
@@ -141,6 +150,7 @@ class KubeConfig(object):
         """
         self.vault_client = vault_client
 
+
 class KubeUtils(KubeConfig):
     """Child of KubeConfig with some helper functions attached"""
 
@@ -203,7 +213,7 @@ class KubeUtils(KubeConfig):
         max_retry = 20
         retry_count = 0
 
-        while success == False and retry_count < max_retry:
+        while success is False and retry_count < max_retry:
             pod_obj = Pod(self).get(pod)
             tempfn = "temp.fn"
             try:
@@ -260,6 +270,7 @@ class KubeUtils(KubeConfig):
                     _in=pv.toYAML(),
                 )
 
+
 class Kubernetes(object):
     """Base class for communicating with Kubernetes.  Provides
     both HTTP and a kubectl command line wrapper.
@@ -306,6 +317,7 @@ class Kubernetes(object):
         response = self.client.delete(url)
         return response.json()
 
+
 class ActorBase(Kubernetes):
     """Base class for the Actors (the things that actually *do* stuff).
     Different kubernetes resource types need to be manage a bit
@@ -347,9 +359,9 @@ class ActorBase(Kubernetes):
 
     def patch(self, name, data):
         return self._patch(self.single_uri.format(
-                namespace=self.config.namespace,
-                resource_type=self.url_type,
-                name=name
+            namespace=self.config.namespace,
+            resource_type=self.url_type,
+            name=name
         ), data=data)
 
     def delete(self, name):
@@ -464,10 +476,10 @@ class ActorBase(Kubernetes):
             return
 
         secret_url = "/secret/{context}/{namespace}/{pod}".format(
-                context=self.config.context,
-                namespace=self.config.namespace,
-                pod=pod_name
-            )
+            context=self.config.context,
+            namespace=self.config.namespace,
+            pod=pod_name
+        )
         LOG.info('Reading secrets for %r', secret_url)
         pod_secrets = {}
         try:
@@ -480,6 +492,36 @@ class ActorBase(Kubernetes):
 
     def simple_name(self, desc):
         return desc.metadata.name
+
+    def build_env_secrets(self, pod_secrets, secret_name):
+        # reformulate secrets to a dict suitable for
+        # creating kube secrets and a list for injecting
+        # into the .yaml
+        secrets = {}
+        env = []
+        envdict = {}
+        # LOG.info(pod_secrets)
+        for secret in pod_secrets:
+            # LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
+
+            my_secret = json.loads(pod_secrets[secret])
+            secrets[secret] = my_secret['value']
+            if my_secret.get('type', '') == 'env':
+                val = {
+                    "name": my_secret['key'],
+                    "valueFrom": {
+                        "secretKeyRef": {
+                            "name": secret_name,
+                            "key": secret
+                        }
+                    }
+                }
+                LOG.info('Adding secret: %r', val)
+
+                env.append(val)
+                envdict[my_secret['key']] = val
+
+        return (env, envdict, secrets)
 
     def apply_secrets(self, desc, filename):
         """If this resource type support secrets and a vault client has
@@ -494,67 +536,23 @@ class ActorBase(Kubernetes):
         """
 
         if self.secrets and self.config.vault_client:
-            pod_name = self.simple_name(desc)
-
-            default_secrets = self.get_secrets("_default_")
-            override_secrets = self.get_secrets(pod_name)
-
-            pod_secrets = default_secrets
-            for secret_key in override_secrets:
-                pod_secrets[secret_key] = override_secrets[secret_key]
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
-                secret_name = pod_name
-            else:
-                secret_name = pod_name + "-vault"
+                # pod based secrets
+                for index, pod in enumerate(desc.spec.template.spec.containers):
+                    default_secrets = self.get_secrets("_default_")
+                    override_secrets = self.get_secrets(pod.name)
 
-            # reformulate secrets to a dict suitable for
-            # creating kube secrets and a list for injecting
-            # into the .yaml
-            secrets = {}
-            env = []
-            envdict = {}
-            # LOG.info(pod_secrets)
-            for secret in pod_secrets:
-                #LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
+                    pod_secrets = default_secrets
+                    for secret_key in override_secrets:
+                        pod_secrets[secret_key] = override_secrets[secret_key]
 
-                my_secret = json.loads(pod_secrets[secret])
-                secrets[secret] = my_secret['value']
-                if my_secret.get('type', '') == 'env':
-                    val = {
-                        "name": my_secret['key'],
-                        "valueFrom": {
-                            "secretKeyRef": {
-                                "name": secret_name,
-                                "key": secret
-                            }
-                        }
-                    }
-                    LOG.info('Adding secret: %r', val)
-
-                    env.append(val)
-                    envdict[my_secret['key']] = val
-
-            if secrets:
-                if Secret(self.config).exists(secret_name):
-                    LOG.info(
-                        'Secret %r already exists.  Replacing keys: %s',
-                        secret_name, secrets.keys()
+                    env, envdict, secrets = self.build_env_secrets(
+                        pod_secrets, pod.name
                     )
-                    Secret(self.config).replace(secret_name, secrets)
-                else:
-                    LOG.info(
-                        'Secret %r does not exist.  Creating keys: %s',
-                        secret_name, secrets.keys()
-                    )
-                    Secret(self.config).create(secret_name, secrets)
 
-            # new secrets override old ones
-            if "template" in desc.spec:
-                for index, container in enumerate(desc.spec.template.spec.containers):
                     myenv = list(env)
-                    # LOG.info('container: %s', container)
-                    for v in container.get("env", []):
+                    for v in pod.get("env", []):
                         if v.name in envdict:
                             LOG.info('Replacing env %s', v.name)
                         else:
@@ -567,8 +565,53 @@ class ActorBase(Kubernetes):
                         newvalue=myenv
                     )
 
-            # does it make sense for an ingress controller
-            # to have environmental secrets?
+            else:
+                # container based secrets
+                secret_name = desc.metadata.name + "-vault"
+
+                default_secrets = self.get_secrets("_default_")
+                override_secrets = self.get_secrets(desc.metadata.name)
+
+                pod_secrets = default_secrets
+                for secret_key in override_secrets:
+                    pod_secrets[secret_key] = override_secrets[secret_key]
+
+                env, envdict, secrets = self.build_env_secrets(
+                    pod_secrets, secret_name
+                )
+
+                if secrets:
+                    if Secret(self.config).exists(secret_name):
+                        LOG.info(
+                            'Secret %r already exists.  Replacing keys: %s',
+                            secret_name, secrets.keys()
+                        )
+                        Secret(self.config).replace(secret_name, secrets)
+                    else:
+                        LOG.info(
+                            'Secret %r does not exist.  Creating keys: %s',
+                            secret_name, secrets.keys()
+                        )
+                        Secret(self.config).create(secret_name, secrets)
+
+                # new secrets override old ones
+                if "template" in desc.spec:
+                    for index, container in enumerate(desc.spec.template.spec.containers):
+                        myenv = list(env)
+                        # LOG.info('container: %s', container)
+                        for v in container.get("env", []):
+                            if v.name in envdict:
+                                LOG.info('Replacing env %s', v.name)
+                            else:
+                                LOG.info('Passing env %s through', v.name)
+                                myenv.append(v.toDict())
+
+                        reimage(
+                            filename=filename,
+                            xpath="spec.template.spec.containers.%i.env" % index,
+                            newvalue=myenv
+                        )
+
 
 class ReadMergeApplyActor(ActorBase):
     """
@@ -581,12 +624,12 @@ class ReadMergeApplyActor(ActorBase):
         if self.exists(desc.metadata.name):
             # pull from the server
             remote = munch.Munch()
-            
+
             try:
                 remote = self.get(desc.metadata.name)
             except Exception as err:
                 LOG.error(
-                    '%s failure to retrieve existing resource %s', 
+                    '%s failure to retrieve existing resource %s',
                     err,
                     filename
                 )
@@ -607,11 +650,13 @@ class ReadMergeApplyActor(ActorBase):
                 self.delete_path(filename)
             self.create_path(filename)
 
+
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource"""
     def apply(self, desc, filename):
         self.apply_secrets(desc, filename)
         self.apply_file(filename)
+
 
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it"""
@@ -621,6 +666,7 @@ class DeleteCreateActor(ActorBase):
         if self.exists(desc.metadata.name):
             self.delete_path(filename)
         self.create_path(filename)
+
 
 class ReplaceActor(ActorBase):
     """Do a *kubectl replace* on this object"""
@@ -632,6 +678,7 @@ class ReplaceActor(ActorBase):
         else:
             self.create_path(filename)
 
+
 class CreateIfMissingActor(ActorBase):
     """Create only if the resource is missing"""
     def apply(self, desc, filename):
@@ -640,10 +687,12 @@ class CreateIfMissingActor(ActorBase):
         if not self.exists(desc.metadata.name):
             self.create_path(filename)
 
+
 class IgnoreActor(ActorBase):
     """null-op, don't do anything"""
 
 ########################################
+
 
 class ConfigMap(ReplaceActor):
     """The ConfigMap API resource holds key-value pairs of configuration
@@ -709,6 +758,7 @@ class ConfigMap(ReplaceActor):
 
         shutil.rmtree(tdir)
 
+
 class Deployment(ReplaceActor):
     """A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
@@ -721,6 +771,7 @@ class Deployment(ReplaceActor):
     api_base = "/apis/extensions/v1beta1"
     secrets = True
 
+
 class DaemonSet(ReplaceActor):
     """A Daemon Set ensures that all (or some) nodes run a copy of a
     pod. As nodes are added to the cluster, pods are added to them. As
@@ -728,6 +779,7 @@ class DaemonSet(ReplaceActor):
     Deleting a Daemon Set will clean up the pods it created."""
     url_type = "daemonsets"
     api_base = "/apis/extensions/v1beta1"
+
 
 class HorizontalPodAutoscaler(CreateIfMissingActor):
     """With Horizontal Pod Autoscaling, Kubernetes automatically scales the
@@ -742,6 +794,7 @@ class HorizontalPodAutoscaler(CreateIfMissingActor):
     url_type = "horizontalpodautoscalers"
     api_base = "/apis/autoscaling/v1"
 
+
 class Ingress(ReplaceActor):
     """An Ingress is a collection of rules that allow inbound
     connections to reach the cluster services."""
@@ -750,10 +803,12 @@ class Ingress(ReplaceActor):
     api_base = "/apis/extensions/v1beta1"
     secrets = True
 
+
 class Job(DeleteCreateActor):
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
     secrets = True
+
 
 class Namespace(CreateIfMissingActor):
     """Kubernetes supports multiple virtual clusters backed by the same
@@ -809,6 +864,7 @@ class Namespace(CreateIfMissingActor):
         )
         return response
 
+
 class NetworkPolicy(ReplaceActor):
     """A network policy is a specification of how selections of pods are
     allowed to communicate with each other and other network endpoints.
@@ -817,6 +873,7 @@ class NetworkPolicy(ReplaceActor):
     allowed by the isolation policy for a given namespace."""
     url_type = "networkpolicies"
     api_base = "/apis/extensions/v1beta1"
+
 
 class Node(IgnoreActor):
     """Node is a worker machine in Kubernetes, previously known as Minion.
@@ -828,6 +885,7 @@ class Node(IgnoreActor):
 
     url_type = "nodes"
     aliases = ['node']
+
 
 class PersistentVolume(CreateIfMissingActor):
     """A PersistentVolume (PV) is a piece of networked storage in the cluster
@@ -856,6 +914,7 @@ class PersistentVolume(CreateIfMissingActor):
             }
         )
 
+
 class PersistentVolumeClaim(CreateIfMissingActor):
     """A PersistentVolumeClaim (PVC) is a request for storage by a user. It
     is similar to a pod. Pods consume node resources and PVCs consume PV
@@ -864,6 +923,7 @@ class PersistentVolumeClaim(CreateIfMissingActor):
     read/write or many times read-only)."""
     url_type = "persistentvolumeclaims"
     aliases = ['pvc']
+
 
 class PetSet(DeleteCreateActor):
     """In Kubernetes, most pod management abstractions group them into
@@ -890,6 +950,7 @@ class PetSet(DeleteCreateActor):
     """
     url_type = "petsets"
     api_base = "/apis/apps/v1alpha1"
+
 
 class Pod(IgnoreActor):
     """A pod (as in a pod of whales or pea pod) is a group of one or more
@@ -967,29 +1028,34 @@ class Pod(IgnoreActor):
 #     url_type = "policy"
 #     api_base = "abac.authorization.kubernetes.io/v1beta1"
 
+
 class ReplicationController(DeleteCreateActor):
-    """A replication controller ensures that a specified number of pod "replicas" are
-    running at any one time. In other words, a replication controller makes sure that
-    a pod or homogeneous set of pods are always up and available. If there are too many
-    pods, it will kill some. If there are too few, the replication controller will start
-    more. Unlike manually created pods, the pods maintained by a replication controller
-    are automatically replaced if they fail, get deleted, or are terminated. For example,
-    your pods get re-created on a node after disruptive maintenance such as a kernel
-    upgrade. For this reason, we recommend that you use a replication controller even if
-    your application requires only a single pod. You can think of a replication controller
-    as something similar to a process supervisor, but rather than individual processes on
-    a single node, the replication controller supervises multiple pods across multiple
-    nodes."""
+    """A replication controller ensures that a specified number of pod
+    "replicas" are running at any one time. In other words, a replication
+    controller makes sure that a pod or homogeneous set of pods are always up
+    and available. If there are too many pods, it will kill some. If there are
+    too few, the replication controller will start more. Unlike manually
+    created pods, the pods maintained by a replication controller are
+    automatically replaced if they fail, get deleted, or are terminated. For
+    example, your pods get re-created on a node after disruptive maintenance
+    such as a kernel upgrade. For this reason, we recommend that you use a
+    replication controller even if your application requires only a single pod.
+    You can think of a replication controller as something similar to a process
+    supervisor, but rather than individual processes on a single node, the
+    replication controller supervises multiple pods across multiple nodes."""
     url_type = "replicationcontrollers"
     secrets = True
 
+
 class Role(CreateIfMissingActor):
-    """roles hold a logical grouping of permissions. These permissions map very closely to
-    ABAC policies, but only contain information about requests being made. Permission are
-    purely additive, rules may only omit permissions they do not wish to grant."""
+    """roles hold a logical grouping of permissions. These permissions map very
+    closely to ABAC policies, but only contain information about requests being
+    made. Permission are purely additive, rules may only omit permissions they
+    do not wish to grant."""
     url_type = "roles"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
+
 
 class ServiceAccount(CreateIfMissingActor):
     url_type = "serviceaccounts"
@@ -997,32 +1063,37 @@ class ServiceAccount(CreateIfMissingActor):
     def create(self, name="default"):
         return self.kubectl.create.serviceaccount(name, namespace=self.config.namespace)
 
+
 class ClusterRole(CreateIfMissingActor):
-    """ClusterRoles hold the same information as a Role but can apply to any namespace as
-    well as non-namespaced resources (such as Nodes, PersistentVolume, etc.)"""
+    """ClusterRoles hold the same information as a Role but can apply to any
+    namespace as well as non-namespaced resources (such as Nodes,
+    PersistentVolume, etc.)"""
     url_type = "clusterroles"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
-class RoleBinding(CreateIfMissingActor):
-    """RoleBindings perform the task of granting the permission to a user or set of users.
-    They hold a list of subjects which they apply to, and a reference to the Role being
-    assigned.
 
-    RoleBindings may also refer to a ClusterRole. However, a RoleBinding that refers to a
-    ClusterRole only applies in the RoleBinding's namespace, not at the cluster level. This
-    allows admins to define a set of common roles for the entire cluster, then reuse them
-    in multiple namespaces.
+class RoleBinding(CreateIfMissingActor):
+    """RoleBindings perform the task of granting the permission to a user or
+    set of users. They hold a list of subjects which they apply to, and a
+    reference to the Role being assigned.
+
+    RoleBindings may also refer to a ClusterRole. However, a RoleBinding that
+    refers to a ClusterRole only applies in the RoleBinding's namespace, not at
+    the cluster level. This allows admins to define a set of common roles for
+    the entire cluster, then reuse them in multiple namespaces.
     """
     url_type = "rolebindings"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
+
 
 class ClusterRoleBinding(CreateIfMissingActor):
     """A ClusterRoleBinding may be used to grant permissions in all namespaces."""
     url_type = "clusterrolebindings"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
+
 
 class Service(ReadMergeApplyActor):
     """Kubernetes Pods are mortal. They are born and they die, and they
@@ -1035,6 +1106,7 @@ class Service(ReadMergeApplyActor):
     Kubernetes cluster, how do those frontends find out and keep track of
     which backends are in that set?"""
     url_type = "services"
+
 
 class Secret(ReplaceActor):
     """Objects of type secret are intended to hold sensitive information,
@@ -1100,12 +1172,14 @@ class Secret(ReplaceActor):
 
 ########################################
 
+
 def resource_by_kind(kind):
     for resource in RESOURCE_CLASSES:
         if resource.__name__ == kind:
             return resource
 
 # simple convenience wrappers for KubeUtils functions
+
 
 def apply_path(
     path,
@@ -1128,6 +1202,7 @@ def apply_path(
         path, recursive
     )
 
+
 def delete_by_type(resource_type, context, namespace):
     """loop through and destroy all resources of the given type.
 
@@ -1137,6 +1212,7 @@ def delete_by_type(resource_type, context, namespace):
     """
     config = KubeUtils(context=context, namespace=namespace)
     config.delete_by_type(resource_type)
+
 
 def copy_to_pod(source_fn, pod, destination_fn, context, namespace):
     """Copy a file into the given pod.
@@ -1156,6 +1232,7 @@ def copy_to_pod(source_fn, pod, destination_fn, context, namespace):
     config = KubeUtils(context=context, namespace=namespace)
     return config.copy_to_pod(source_fn, pod, destination_fn)
 
+
 def _maybeint(maybe):
     """
     If it is an int, make it an int.  otherwise leave it as a string.
@@ -1171,6 +1248,7 @@ def _maybeint(maybe):
     except ValueError:
         pass
     return maybe
+
 
 def reimage(filename, xpath, newvalue, save_to=None):
     """
@@ -1317,6 +1395,5 @@ class Kubectl(KubeUtils):
                 resource = resource_class(self)
                 cache[resource_desc.kind] = resource
 
-            if not cache[resource_desc.kind].exists(desc.metadata.name):
-                self.create_path(filename)
-
+            if not cache[resource_desc.kind].exists(resource_desc.metadata.name):
+                self.create_path(resource_fn)
