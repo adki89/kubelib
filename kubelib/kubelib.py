@@ -541,16 +541,32 @@ class ActorBase(Kubernetes):
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
                 # pod based secrets
                 for index, pod in enumerate(desc.spec.template.spec.containers):
+                    secret_name = pod.name
+
                     default_secrets = self.get_secrets("_default_")
-                    override_secrets = self.get_secrets(pod.name)
+                    override_secrets = self.get_secrets(secret_name)
 
                     pod_secrets = default_secrets
                     for secret_key in override_secrets:
                         pod_secrets[secret_key] = override_secrets[secret_key]
 
                     env, envdict, secrets = self.build_env_secrets(
-                        pod_secrets, pod.name
+                        pod_secrets, secret_name
                     )
+
+                    if secrets:
+                        if Secret(self.config).exists(secret_name):
+                            LOG.info(
+                                'Secret %r already exists.  Replacing keys: %s',
+                                secret_name, secrets.keys()
+                            )
+                            Secret(self.config).replace(secret_name, secrets)
+                        else:
+                            LOG.info(
+                                'Secret %r does not exist.  Creating keys: %s',
+                                secret_name, secrets.keys()
+                            )
+                            Secret(self.config).create(secret_name, secrets)
 
                     myenv = list(env)
                     for v in pod.get("env", []):
