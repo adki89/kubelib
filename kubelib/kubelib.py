@@ -486,8 +486,9 @@ class ActorBase(Kubernetes):
             pod_secrets = self.config.vault_client.read(secret_url)['data']
         except Exception as err:
             LOG.error(err)
-            LOG.info('Skipping...')
+            LOG.info('No secrets found.  Skipping...')
 
+        LOG.info('Found %s secrets', len(pod_secrets))
         return pod_secrets
 
     def simple_name(self, desc):
