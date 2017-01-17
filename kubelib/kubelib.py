@@ -1,6 +1,4 @@
-"""
-Library of Kubernetes flavored helpers and objects
-"""
+"""Library of Kubernetes flavored helpers and objects."""
 
 import base64
 import json
@@ -28,26 +26,28 @@ logging.info('Starting...')
 
 
 class TimeOut(Exception):
-    """maximum timeout exceeded"""
+    """maximum timeout exceeded."""
 
 
 class KubeError(Exception):
-    """Generic Kubernetes error wrapper"""
+    """Generic Kubernetes error wrapper."""
 
 
 class ContextRequired(KubeError):
-    """Everything requires a context"""
+    """Everything requires a context."""
 
 
 class ClusterNotFound(KubeError):
-    """Probably a bad ~/.kube/config"""
+    """Probably a bad ~/.kube/config."""
 
 
 class KubeConfig(object):
+    """Holds config information to communicate with a kube cluster."""
 
     def __init__(self, context=None, namespace=None):
-        """Create a new KubeConfig object.  This holds all
-        the config information needed to communicate with
+        """Create a new KubeConfig object.
+
+        This holds all the config information needed to communicate with
         a particular kubernetes cluster.
 
         :param context: Kubernetes context
@@ -115,8 +115,9 @@ class KubeConfig(object):
         self.vault_client = None
 
     def set_context(self, context=None):
-        """Set the current context.  This is generally
-        done during initialization.
+        """Set the current context.
+
+        This is generally done during initialization.
 
         Passing *None* will detect and utilize the current
         default kubectl context.
@@ -130,8 +131,9 @@ class KubeConfig(object):
         self.context = context
 
     def set_namespace(self, namespace=None):
-        """Set the current namespace.  This is generally
-        done during initialization.
+        """Set the current namespace.
+
+        This is generally done during initialization.
 
         Passing *None* will detect and utilize the current
         default kubectl namespace for this context.
@@ -144,7 +146,7 @@ class KubeConfig(object):
         self.namespace = namespace
 
     def set_vault(self, vault_client):
-        """helper to assign a pre-autheticated vault client
+        """Helper to assign a pre-autheticated vault client.
 
         :param vault_client: hvac client
         """
@@ -152,12 +154,12 @@ class KubeConfig(object):
 
 
 class KubeUtils(KubeConfig):
-    """Child of KubeConfig with some helper functions attached"""
+    """Child of KubeConfig with some helper functions attached."""
 
     def apply_path(self, path, recursive=False):
-        """Apply all the yml or yaml resource files in the given
-        directory to the current context/namespace.  Exactly what
-        apply means depends on the resource type.
+        """Apply all the yaml files in `path` to the current context/namespace.
+
+        Exactly what apply means depends on the resource type.
 
         :param path: Directory of yaml resources
         :param recursive: True to recurse into subdirectories
@@ -232,18 +234,18 @@ class KubeUtils(KubeConfig):
         LOG.info('scp %r %r', source_fn, destination)
         sh.scp(source_fn, destination)
 
-        container_id = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
+        cont_id = pod_obj.status["containerStatuses"][0]["containerID"][9:21]
 
         command = "docker cp {origin} {container}:{destination}".format(
             origin=tempfn,
-            container=container_id,
+            container=cont_id,
             destination=destination_fn
         )
 
         sh.ssh(node_name, command)
 
     def delete_by_type(self, resource_type):
-        """loop through and destroy all resources of the given type.
+        """Loop through and destroy all resources of the given type.
 
         :param resource_type: resource type (Service, Pod, etc..)
         """
@@ -253,9 +255,11 @@ class KubeUtils(KubeConfig):
             resource.delete(resource_obj.metadata.name)
 
     def clean_volumes(self):
-        """Delete and rebuild any persistent volume in a released
-        or failed state.  Note: this Persistent Volumes are *not*
-        contained by namespace so this is a whole-context operation.
+        """Clean persistent volumes.
+
+        Delete and rebuild all volumes in a released or failed state.
+        Note: this Persistent Volumes are *not* contained by namespace
+        so this is a whole-context operation.
         """
         for pv in PersistentVolume(self).get_list():
             if pv.status.phase in ['Released', 'Failed']:
@@ -272,12 +276,15 @@ class KubeUtils(KubeConfig):
 
 
 class Kubernetes(object):
-    """Base class for communicating with Kubernetes.  Provides
-    both HTTP and a kubectl command line wrapper.
+    """Base class for communicating with Kubernetes.
+
+    Provides both HTTP and a kubectl command line wrapper.
     """
+
     api_base = "/api/v1"
 
     def __init__(self, kubeconfig):
+        """"Create a new Kubernetes object."""
         self.config = kubeconfig
         if self.config.req is None:
             self.client = requests.Session()
@@ -320,6 +327,7 @@ class Kubernetes(object):
 
 class ActorBase(Kubernetes):
     """Base class for the Actors (the things that actually *do* stuff).
+
     Different kubernetes resource types need to be manage a bit
     differently.  The Actor sub-classes contain those differences.
     """
@@ -332,8 +340,9 @@ class ActorBase(Kubernetes):
     secrets = False
 
     def get_list(self):
-        """Retrieve a list of munch objects describing all
-        the resources of this type in this namespace/context
+        """Retrieve a list of munch objects.
+
+        Describing all the resources of this type in this namespace/context
         """
         url = self.list_uri.format(
             namespace=self.config.namespace,
@@ -343,12 +352,13 @@ class ActorBase(Kubernetes):
             self._get(url)
         )
         # LOG.debug('get_list resources: %r', resources)
-        return resources.get("items", [])
+        out = resources.get("items", [])
+        if out is None:
+            out = []
+        return out
 
     def get(self, name):
-        """Retrieve a single munch object describing one
-        resource by name
-        """
+        """Retrieve a single munch describing one resource by name."""
         return munch.munchify(
             self._get(self.single_uri.format(
                 namespace=self.config.namespace,
@@ -358,6 +368,7 @@ class ActorBase(Kubernetes):
         )
 
     def patch(self, name, data):
+        """Update one resource."""
         return self._patch(self.single_uri.format(
             namespace=self.config.namespace,
             resource_type=self.url_type,
@@ -365,12 +376,11 @@ class ActorBase(Kubernetes):
         ), data=data)
 
     def delete(self, name):
-        """delete the named resource
+        """Delete the named resource.
 
         TODO: should be easy to rewrite this as a kube api
         delete call instead of going through kubectl.
         """
-
         try:
             self.kubectl.delete(
                 self.url_type,
@@ -436,8 +446,7 @@ class ActorBase(Kubernetes):
         return True
 
     def apply(self, desc, filename):
-        """NOOP Placeholder to be overridden by Actor
-        sub-classes.
+        """NOOP Placeholder to be overridden by sub-classes.
 
         :param desc: Munch resource object
         :param filename: Filename associated with the resource
@@ -445,7 +454,7 @@ class ActorBase(Kubernetes):
         return
 
     def exists(self, name, force_reload=False):
-        """returns True if *name* exist in kubes
+        """Return True if *name* exist in kubes.
 
         :param name: Name of the resource we are interest in
         :param force_reload: Force a fresh cope of inventory (bypass cache)
@@ -471,6 +480,7 @@ class ActorBase(Kubernetes):
             return False
 
     def get_secrets(self, pod_name):
+        """Retrieve secrets for the named pod."""
         if self.config.vault_client is None:
             LOG.info('No Vault Client provided, skipping...')
             return
@@ -492,12 +502,17 @@ class ActorBase(Kubernetes):
         return pod_secrets
 
     def simple_name(self, desc):
+        """Override-able func to get the name of a resource."""
         return desc.metadata.name
 
     def build_env_secrets(self, pod_secrets, secret_name):
-        # reformulate secrets to a dict suitable for
-        # creating kube secrets and a list for injecting
-        # into the .yaml
+        """
+        Convert Hashi secrets to Kube secrets.
+
+        reformulate secrets to a dict suitable for
+        creating kube secrets and a list for injecting
+        into the .yaml
+        """
         secrets = {}
         env = []
         envdict = {}
@@ -525,7 +540,10 @@ class ActorBase(Kubernetes):
         return (env, envdict, secrets)
 
     def apply_secrets(self, desc, filename):
-        """If this resource type support secrets and a vault client has
+        """
+        Inject secrets into the given resource.
+
+        If this resource type support secrets and a vault client has
         been assigned we want to check vault to see if there are any
         secrets for this resource.  If there are we want to extract
         the secrets from vault and create them as kubernetes secrets.
@@ -535,12 +553,13 @@ class ActorBase(Kubernetes):
         TODO: support 'type's other than 'env' to automate putting
         files into the container.
         """
-
         if self.secrets and self.config.vault_client:
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
                 # pod based secrets
-                for index, pod in enumerate(desc.spec.template.spec.containers):
+                for index, pod in enumerate(
+                    desc.spec.template.spec.containers
+                ):
                     secret_name = pod.name
 
                     default_secrets = self.get_secrets("_default_")
@@ -557,7 +576,7 @@ class ActorBase(Kubernetes):
                     if secrets:
                         if Secret(self.config).exists(secret_name):
                             LOG.info(
-                                'Secret %r already exists.  Replacing keys: %s',
+                                'Secret %r exists.  Replacing keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).replace(secret_name, secrets)
@@ -613,7 +632,9 @@ class ActorBase(Kubernetes):
 
                 # new secrets override old ones
                 if "template" in desc.spec:
-                    for index, container in enumerate(desc.spec.template.spec.containers):
+                    for index, container in enumerate(
+                        desc.spec.template.spec.containers
+                    ):
                         myenv = list(env)
                         # LOG.info('container: %s', container)
                         for v in container.get("env", []):
@@ -623,19 +644,23 @@ class ActorBase(Kubernetes):
                                 LOG.info('Passing env %s through', v.name)
                                 myenv.append(v.toDict())
 
+                        xpath = "spec.template.spec.containers.%i.env" % index
                         reimage(
                             filename=filename,
-                            xpath="spec.template.spec.containers.%i.env" % index,
+                            xpath=xpath,
                             newvalue=myenv
                         )
 
 
 class ReadMergeApplyActor(ActorBase):
     """
-    Do a kubectl get, update with the contents of filename,
+    Do a kubectl get, update with the contents of filename.
+
     write it, then apply it.
     """
+
     def apply(self, desc, filename):
+        """Read, Merge then Apply."""
         self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
@@ -669,15 +694,19 @@ class ReadMergeApplyActor(ActorBase):
 
 
 class ApplyActor(ActorBase):
-    """Do a kubectl apply on the resource"""
+    """Do a kubectl apply on the resource."""
+
     def apply(self, desc, filename):
+        """Simple apply with secrets support."""
         self.apply_secrets(desc, filename)
         self.apply_file(filename)
 
 
 class DeleteCreateActor(ActorBase):
-    """Delete the resource and re-create it"""
+    """Delete the resource and re-create it."""
+
     def apply(self, desc, filename):
+        """Delete then create."""
         self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
@@ -686,8 +715,10 @@ class DeleteCreateActor(ActorBase):
 
 
 class ReplaceActor(ActorBase):
-    """Do a *kubectl replace* on this object"""
+    """Do a *kubectl replace* on this object."""
+
     def apply(self, desc, filename):
+        """Replace if it exists, Create if it doesn't."""
         self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
@@ -697,8 +728,10 @@ class ReplaceActor(ActorBase):
 
 
 class CreateIfMissingActor(ActorBase):
-    """Create only if the resource is missing"""
+    """Create only if the resource is missing."""
+
     def apply(self, desc, filename):
+        """Create only.  You almost never want this."""
         self.apply_secrets(desc, filename)
 
         if not self.exists(desc.metadata.name):
@@ -706,22 +739,27 @@ class CreateIfMissingActor(ActorBase):
 
 
 class IgnoreActor(ActorBase):
-    """null-op, don't do anything"""
+    """NOOP, don't do anything."""
 
 ########################################
 
 
 class ConfigMap(ReplaceActor):
-    """The ConfigMap API resource holds key-value pairs of configuration
+    """ConfigMap Resource.
+
+    The ConfigMap API resource holds key-value pairs of configuration
     data that can be consumed in pods or used to store configuration data
     for system components such as controllers. ConfigMap is similar to
     Secrets, but designed to more conveniently support working with
-    strings that do not contain sensitive information."""
+    strings that do not contain sensitive information.
+    """
+
     url_type = 'configmaps'
 
     def from_path(self, configkey, filename):
-        """File contents should be one config key/value per line delimited by
-        an equal ala:
+        """File contents should be one config key/value per line delimited by an equal.
+
+        ala:
 
         enemies=aliens
         lives=3
@@ -733,8 +771,6 @@ class ConfigMap(ReplaceActor):
         # of the key is the filename, and the value of the key is the content
         # of the file.
         """
-
-        # kubectl create configmap game-config --from-file=docs/user-guide/configmap/kubectl
         self.kubectl.create.configmap(
             configkey,
             "--from-file={}".format(filename),
@@ -743,24 +779,7 @@ class ConfigMap(ReplaceActor):
         )
 
     def from_dict(self, configkey, literal_dict):
-        """
-        $ kubectl create configmap special-config --from-literal=special.how=very --from-literal=special.type=charm
-        """
-
-        # so this didn't work (value is too messy)
-        # literal = []
-        # for key in literal_dict:
-        #     literal.append('--from-literal={key}={value}'.format(
-        #         key=key,
-        #         value=literal_dict[key]
-        #     ))
-
-        # self.kubectl.create.configmap(
-        #     configkey,
-        #     " ".join(literal),
-        #     '--context={}'.format(self.config.context),
-        #     '--namespace={}'.format(self.config.namespace)
-        # )
+        """Turn a dict into a configmap."""
         tdir = tempfile.mkdtemp()
         for key in literal_dict:
             with open(os.path.join(tdir, key), 'w') as h:
@@ -777,29 +796,39 @@ class ConfigMap(ReplaceActor):
 
 
 class Deployment(ReplaceActor):
-    """A Deployment provides declarative updates for Pods and
+    """Deployment resource.
+
+    A Deployment provides declarative updates for Pods and
     Replica Sets (the next-generation Replication Controller).
     You only need to describe the desired state in a Deployment
     object, and the Deployment controller will change the actual
     state to the desired state at a controlled rate for you. You
     can define Deployments to create new resources, or replace
-    existing ones by new ones."""
+    existing ones by new ones.
+    """
+
     url_type = 'deployments'
     api_base = "/apis/extensions/v1beta1"
     secrets = True
 
 
 class DaemonSet(ReplaceActor):
-    """A Daemon Set ensures that all (or some) nodes run a copy of a
+    """DaemonSet resource.
+
+    A Daemon Set ensures that all (or some) nodes run a copy of a
     pod. As nodes are added to the cluster, pods are added to them. As
     nodes are removed from the cluster, those pods are garbage collected.
-    Deleting a Daemon Set will clean up the pods it created."""
+    Deleting a Daemon Set will clean up the pods it created.
+    """
+
     url_type = "daemonsets"
     api_base = "/apis/extensions/v1beta1"
 
 
 class HorizontalPodAutoscaler(CreateIfMissingActor):
-    """With Horizontal Pod Autoscaling, Kubernetes automatically scales the
+    """HorizontalPodAutoscaler resource.
+
+    With Horizontal Pod Autoscaling, Kubernetes automatically scales the
     number of pods in a replication controller, deployment or replica set
     based on observed CPU utilization (or, with alpha support, on some other,
     application-provided metrics).
@@ -807,14 +836,20 @@ class HorizontalPodAutoscaler(CreateIfMissingActor):
     and a controller. The resource determines the behavior of the controller.
     The controller periodically adjusts the number of replicas in a replication
     controller or deployment to match the observed average CPU utilization to
-    the target specified by user."""
+    the target specified by user.
+    """
+
     url_type = "horizontalpodautoscalers"
     api_base = "/apis/autoscaling/v1"
 
 
 class Ingress(ReplaceActor):
-    """An Ingress is a collection of rules that allow inbound
-    connections to reach the cluster services."""
+    """Ingress resource.
+
+    An Ingress is a collection of rules that allow inbound
+    connections to reach the cluster services.
+    """
+
     url_type = "ingresses"
     aliases = ["ing"]
     api_base = "/apis/extensions/v1beta1"
@@ -822,14 +857,20 @@ class Ingress(ReplaceActor):
 
 
 class Job(DeleteCreateActor):
+    """Job resource."""
+
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
     secrets = True
 
 
 class Namespace(CreateIfMissingActor):
-    """Kubernetes supports multiple virtual clusters backed by the same
-    physical cluster. These virtual clusters are called namespaces."""
+    """Namespace resource.
+
+    Kubernetes supports multiple virtual clusters backed by the same
+    physical cluster. These virtual clusters are called namespaces.
+    """
+
     url_type = "namespaces"
     aliases = ['ns']
     list_uri = "/{resource_type}"
@@ -839,7 +880,7 @@ class Namespace(CreateIfMissingActor):
         """Create the given namespace.
 
         :param namespace: name of the namespace we want to create
-        :returns: True if the create succeeded, False otherwise (it already exists)
+        :returns: True if the create succeeded, False otherwise
         """
         response = self._post(
             "/namespaces",
@@ -883,42 +924,53 @@ class Namespace(CreateIfMissingActor):
 
 
 class NetworkPolicy(ReplaceActor):
-    """A network policy is a specification of how selections of pods are
+    """NetworkPolicy resource.
+
+    A network policy is a specification of how selections of pods are
     allowed to communicate with each other and other network endpoints.
     NetworkPolicy resources use labels to select pods and define whitelist
     rules which allow traffic to the selected pods in addition to what is
-    allowed by the isolation policy for a given namespace."""
+    allowed by the isolation policy for a given namespace.
+    """
+
     url_type = "networkpolicies"
     api_base = "/apis/extensions/v1beta1"
 
 
 class Node(IgnoreActor):
-    """Node is a worker machine in Kubernetes, previously known as Minion.
+    """Node resource.
+
+    Node is a worker machine in Kubernetes, previously known as Minion.
     Node may be a VM or physical machine, depending on the cluster. Each
     node has the services necessary to run Pods and is managed by the
     master components. The services on a node include docker, kubelet
     and network proxy. See The Kubernetes Node section in the architecture
-    design doc for more details."""
+    design doc for more details.
+    """
 
     url_type = "nodes"
     aliases = ['node']
 
 
 class PersistentVolume(CreateIfMissingActor):
-    """A PersistentVolume (PV) is a piece of networked storage in the cluster
+    """PersistentVolume resource.
+
+    A PersistentVolume (PV) is a piece of networked storage in the cluster
     that has been provisioned by an administrator. It is a resource in the
     cluster just like a node is a cluster resource. PVs are volume plugins
     like Volumes, but have a lifecycle independent of any individual pod that
     uses the PV. This API object captures the details of the implementation of
     the storage, be that NFS, iSCSI, or a cloud-provider-specific storage
-    system."""
+    system.
+    """
+
     url_type = "persistentvolumes"
     aliases = ['pv']
     list_uri = "/{resource_type}"
     single_uri = "/{resource_type}/{name}"
 
-    def set_claimRef(self, name, claimref):
-        """Manually link PV $name with the given claim reference (pvc name)"""
+    def set_claim_ref(self, name, claimref):
+        """Manually link PV $name with the given claim reference (pvc name)."""
         return self.patch(
             name,
             {
@@ -931,19 +983,27 @@ class PersistentVolume(CreateIfMissingActor):
             }
         )
 
+    set_claimRef = set_claim_ref
+
 
 class PersistentVolumeClaim(CreateIfMissingActor):
-    """A PersistentVolumeClaim (PVC) is a request for storage by a user. It
+    """PersistentVolumeClaim resource.
+
+    A PersistentVolumeClaim (PVC) is a request for storage by a user. It
     is similar to a pod. Pods consume node resources and PVCs consume PV
     resources. Pods can request specific levels of resources (CPU and Memory).
     Claims can request specific size and access modes (e.g, can be mounted once
-    read/write or many times read-only)."""
+    read/write or many times read-only).
+    """
+
     url_type = "persistentvolumeclaims"
     aliases = ['pvc']
 
 
 class PetSet(DeleteCreateActor):
-    """In Kubernetes, most pod management abstractions group them into
+    """PetSet resource.
+
+    In Kubernetes, most pod management abstractions group them into
     disposable units of work that compose a micro service. Replication
     controllers for example, are designed with a weak guarantee - that
     there should be N replicas of a particular pod template. The pods
@@ -965,22 +1025,28 @@ class PetSet(DeleteCreateActor):
     identities to individual instances of an application that are not
     anchored to the underlying physical infrastructure.
     """
+
     url_type = "petsets"
     api_base = "/apis/apps/v1alpha1"
 
 
 class Pod(IgnoreActor):
-    """A pod (as in a pod of whales or pea pod) is a group of one or more
+    """Pod resource.
+
+    A pod (as in a pod of whales or pea pod) is a group of one or more
     containers (such as Docker containers), the shared storage for those
     containers, and options about how to run the containers. Pods are always
     co-located and co-scheduled, and run in a shared context. A pod models an
     application-specific "logical host" - it contains one or more application
     containers which are relatively tightly coupled - in a pre-container world,
-    they would have executed on the same physical or virtual machine."""
+    they would have executed on the same physical or virtual machine.
+    """
+
     url_type = "pods"
     aliases = ['pod']
 
     def simple_name(self, desc):
+        """Getting a pods base name is disturbingly tricky."""
         return desc.metadata.generateName.split('-')[0]
 
     def wait_for_pod(self, pod_name, max_delay=300):
@@ -1020,8 +1086,10 @@ class Pod(IgnoreActor):
                 time.sleep(2)
 
     def exec_cmd(self, pod, container, *command):
-        """Execute a command in a pod/container.  If container is None
-        the kubectl behavior is to pick the first container if possible
+        """Execute a command in a pod/container.
+
+        If container is None the kubectl behavior is to pick the
+        first container if possible
         """
         if container is None:
             return self.kubectl(
@@ -1047,7 +1115,9 @@ class Pod(IgnoreActor):
 
 
 class ReplicationController(DeleteCreateActor):
-    """A replication controller ensures that a specified number of pod
+    """ReplicationController resource.
+
+    A replication controller ensures that a specified number of pod
     "replicas" are running at any one time. In other words, a replication
     controller makes sure that a pod or homogeneous set of pods are always up
     and available. If there are too many pods, it will kill some. If there are
@@ -1059,39 +1129,57 @@ class ReplicationController(DeleteCreateActor):
     replication controller even if your application requires only a single pod.
     You can think of a replication controller as something similar to a process
     supervisor, but rather than individual processes on a single node, the
-    replication controller supervises multiple pods across multiple nodes."""
+    replication controller supervises multiple pods across multiple nodes.
+    """
+
     url_type = "replicationcontrollers"
     secrets = True
 
 
 class Role(CreateIfMissingActor):
-    """roles hold a logical grouping of permissions. These permissions map very
+    """Role resource.
+
+    Roles hold a logical grouping of permissions. These permissions map very
     closely to ABAC policies, but only contain information about requests being
     made. Permission are purely additive, rules may only omit permissions they
-    do not wish to grant."""
+    do not wish to grant.
+    """
+
     url_type = "roles"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
 
 class ServiceAccount(CreateIfMissingActor):
+    """ServiceAccount resource."""
+
     url_type = "serviceaccounts"
 
     def create(self, name="default"):
-        return self.kubectl.create.serviceaccount(name, namespace=self.config.namespace)
+        """Create a new ServiceAccount."""
+        return self.kubectl.create.serviceaccount(
+            name,
+            namespace=self.config.namespace
+        )
 
 
 class ClusterRole(CreateIfMissingActor):
-    """ClusterRoles hold the same information as a Role but can apply to any
+    """ClusterRole resource.
+
+    ClusterRoles hold the same information as a Role but can apply to any
     namespace as well as non-namespaced resources (such as Nodes,
-    PersistentVolume, etc.)"""
+    PersistentVolume, etc.)
+    """
+
     url_type = "clusterroles"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
 
 class RoleBinding(CreateIfMissingActor):
-    """RoleBindings perform the task of granting the permission to a user or
+    """RoleBinding resource.
+
+    RoleBindings perform the task of granting the permission to a user or
     set of users. They hold a list of subjects which they apply to, and a
     reference to the Role being assigned.
 
@@ -1100,20 +1188,27 @@ class RoleBinding(CreateIfMissingActor):
     the cluster level. This allows admins to define a set of common roles for
     the entire cluster, then reuse them in multiple namespaces.
     """
+
     url_type = "rolebindings"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
 
 class ClusterRoleBinding(CreateIfMissingActor):
-    """A ClusterRoleBinding may be used to grant permissions in all namespaces."""
+    """ClusterRoleBinding resource.
+
+    A ClusterRoleBinding may be used to grant permissions in all namespaces.
+    """
+
     url_type = "clusterrolebindings"
     api_base = "/apis/rbac.authorization.k8s.io/v1alpha1"
     list_uri = "/{resource_type}"
 
 
 class Service(ReadMergeApplyActor):
-    """Kubernetes Pods are mortal. They are born and they die, and they
+    """Service resource.
+
+    Kubernetes Pods are mortal. They are born and they die, and they
     are not resurrected. ReplicationControllers in particular create and
     destroy Pods dynamically (e.g. when scaling up or down or when doing
     rolling updates). While each Pod gets its own IP address, even those
@@ -1121,19 +1216,26 @@ class Service(ReadMergeApplyActor):
     to a problem: if some set of Pods (let's call them backends) provides
     functionality to other Pods (let's call them frontends) inside the
     Kubernetes cluster, how do those frontends find out and keep track of
-    which backends are in that set?"""
+    which backends are in that set?
+    """
+
     url_type = "services"
 
 
 class Secret(ReplaceActor):
-    """Objects of type secret are intended to hold sensitive information,
+    """Secret resource.
+
+    Objects of type secret are intended to hold sensitive information,
     such as passwords, OAuth tokens, and ssh keys. Putting this information
     in a secret is safer and more flexible than putting it verbatim in a
     pod definition or in a docker image. See Secrets design document for
-    more information."""
+    more information.
+    """
+
     url_type = "secrets"
 
     def create(self, name, dict_of_secrets):
+        """Create a new secret(s)."""
         encoded_dict = {}
         for key in dict_of_secrets:
             encoded_dict[key] = base64.b64encode(str(dict_of_secrets[key]))
@@ -1160,6 +1262,7 @@ class Secret(ReplaceActor):
             raise KubeError('Unexpected response: %r', response)
 
     def replace(self, name, dict_of_secrets):
+        """Replace an existing secret(s)."""
         encoded_dict = {}
         for key in dict_of_secrets:
             encoded_dict[key] = base64.b64encode(str(dict_of_secrets[key]))
@@ -1191,6 +1294,7 @@ class Secret(ReplaceActor):
 
 
 def resource_by_kind(kind):
+    """Filter to lookup a resource by the `kind` field."""
     for resource in RESOURCE_CLASSES:
         if resource.__name__ == kind:
             return resource
@@ -1204,9 +1308,9 @@ def apply_path(
     namespace=None,
     recursive=True
 ):
-    """Apply all the yml or yaml resource files in the given
-    directory to the given context/namespace.  Exactly what
-    apply means depends on the resource type.
+    """Apply all the yaml files in `path` to the given context/namespace.
+
+    Exactly what apply means depends on the resource type.
 
     :param context: Kubernetes context
     :param namespace: Kubernetes namespace
@@ -1221,7 +1325,7 @@ def apply_path(
 
 
 def delete_by_type(resource_type, context, namespace):
-    """loop through and destroy all resources of the given type.
+    """Loop through and destroy all resources of the given type.
 
     :param resource_type: resource type (Service, Pod, etc..)
     :param context: Kubernetes context
@@ -1269,10 +1373,14 @@ def _maybeint(maybe):
 
 def reimage(filename, xpath, newvalue, save_to=None):
     """
-    Replace the given location (xpath) in the yaml filename with the value
-    newvalue.
+    Replace the given xpath in the yaml filename with the value newvalue.
 
-    >>> reimage("./tests/reimage_test.yml", "alpha.beta.gamma.0.delta", "epsilon", "./tests/reimage_test_done.yml")
+    >>> reimage(
+        "./tests/reimage_test.yml",
+        "alpha.beta.gamma.0.delta",
+        "epsilon",
+        "./tests/reimage_test_done.yml"
+    )
     {'alpha': {'beta': {'gamma': [{'a': 'silly', 'c': 'are', 'b': 'tests', 'e': 'useful', 'd': 'often', 'f': 'working', 'delta': 'epsilon'}, {'a': 'dummy'}]}}, 'junk': {'this': {'is': [{'just': 'noise'}]}}}
     """
     with open(filename, 'r') as handle:
@@ -1329,16 +1437,21 @@ for kube_type in TYPE_TO_KIND:
 
 
 class Kubectl(KubeUtils):
-    """Backward compatibility shim.  Don't use this for new
-    projects.
+    """Backward compatibility shim.
+
+    Don't use this for new projects.
     """
+
     def __init__(self, context=None, namespace=None, dryrun=None):
+        """Wrapper to upstream __init__."""
         super(Kubectl, self).__init__(context, namespace)
 
     def create_namespace(self, namespace):
+        """Create a new namespace."""
         return Namespace(self).create(namespace)
 
     def create_path(self, path_or_fn):
+        """Create the given path/fn."""
         sh.kubectl.create(
             '--save-config',
             "-f {}".format(path_or_fn),
@@ -1347,6 +1460,7 @@ class Kubectl(KubeUtils):
         )
 
     def delete_path(self, path_or_fn):
+        """Delete the given path/fn."""
         sh.kubectl.delete(
             "-f {}".format(path_or_fn),
             context=self.config.context,
