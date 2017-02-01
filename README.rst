@@ -5,6 +5,8 @@ Python library to simplify kubernetes scripting.  Minimal test coverage.
 
 `Full Documentation Here <http://public.safarilab.com/kubelib/>`_
 
+TODO: The current plan is to rebuild this around <https://github.com/kubernetes-incubator/client-python>.
+
 Quickstart
 ----------
 
