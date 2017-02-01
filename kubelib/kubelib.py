@@ -584,6 +584,7 @@ class ActorBase(Kubernetes):
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
+                    return
 
                 for index, pod in enumerate(
                     desc.spec.template.spec.containers
