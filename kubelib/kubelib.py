@@ -785,7 +785,15 @@ class ReadMergeApplyActor(ActorBase):
                         'Secret changes detected: %s -- Replacing pod',
                         changes
                     )
-                self.replace_path(filename, force=force)
+
+                if desc.kind in ['Deployment']:
+                    # even with force=true replacing
+                    # a deployment doesn't cleanup and
+                    # redeploy pods.
+                    self.delete_path(filename)
+                    self.create_path(filename)
+                else:
+                    self.replace_path(filename, force=force)
             else:
                 self.apply_file(filename)
 
