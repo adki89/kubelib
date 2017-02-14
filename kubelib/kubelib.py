@@ -518,7 +518,7 @@ class ActorBase(Kubernetes):
         secret_url = "/secret/{context}/{namespace}/{container}".format(
             context=self.config.context,
             namespace=self.config.namespace,
-            pod=container_name
+            container=container_name
         )
         LOG.info('Reading secrets for %r', secret_url)
         container_secrets = {}
