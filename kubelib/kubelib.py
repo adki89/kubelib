@@ -211,8 +211,11 @@ class KubeUtils(KubeConfig):
 
             force = False
             if replace_set:
-                # at least some pods ought to be replaced instead of applied
                 container_names = self._get_container_names(resource_desc)
+
+                LOG.info('Looking for %s in %s', container_names, replace_set)
+                # at least some pods ought to be replaced instead of applied
+                # TODO do a set intersection, nested loops is dumb
                 for container_name in container_names:
                     if container_name in replace_set:
                         LOG.info('Forcing replacement of %s', resource_fn)
