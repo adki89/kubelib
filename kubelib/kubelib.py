@@ -156,15 +156,29 @@ class KubeConfig(object):
 class KubeUtils(KubeConfig):
     """Child of KubeConfig with some helper functions attached."""
 
-    def apply_path(self, path, recursive=False):
+    def _get_container_names(self, resource_desc):
+        containers = set()
+        try:
+            for container in resource_desc.spec.template.spec.containers:
+                containers.add(container.name)
+
+        except AttributeError:
+            pass
+
+        return containers
+
+    def apply_path(self, path, recursive=False, replace_set=None):
         """Apply all the yaml files in `path` to the current context/namespace.
 
         Exactly what apply means depends on the resource type.
 
         :param path: Directory of yaml resources
         :param recursive: True to recurse into subdirectories
+        :param reload_set: Set of containers that should be reloaded
         """
         path.rstrip('/')
+        if replace_set is None:
+            replace_set = set()
 
         if recursive:
             path += "/**/*"
@@ -195,7 +209,23 @@ class KubeUtils(KubeConfig):
                 resource = resource_class(self)
                 cache[resource_desc.kind] = resource
 
-            cache[resource_desc.kind].apply(resource_desc, resource_fn)
+            replace = False
+            if replace_set:
+                # at least some pods ought to be replaced instead of applied
+                container_names = self._get_container_names(resource_desc)
+                for container_name in container_names:
+                    if container_name in replace_set:
+                        replace = True
+                        break
+
+            if replace:
+                # there are configmap changes so we want to replace
+                # the pod instead of just applying it.
+                cache[resource_desc.kind].replace(resource_desc, resource_fn)
+            else:
+                # if there are secret changes this will turn itself
+                # into a replace.
+                cache[resource_desc.kind].apply(resource_desc, resource_fn)
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
         """Copy a file into the given pod.
@@ -451,7 +481,7 @@ class ActorBase(Kubernetes):
         :param desc: Munch resource object
         :param filename: Filename associated with the resource
         """
-        return
+        return set()
 
     def exists(self, name, force_reload=False):
         """Return True if *name* exist in kubes.
@@ -479,27 +509,27 @@ class ActorBase(Kubernetes):
             LOG.info('(MISSING) [%s] %s:%s', fresh, url, name)
             return False
 
-    def get_secrets(self, pod_name):
-        """Retrieve secrets for the named pod."""
+    def get_secrets(self, container_name):
+        """Retrieve secrets from vault for the named pod."""
         if self.config.vault_client is None:
             LOG.info('No Vault Client provided, skipping...')
             return
 
-        secret_url = "/secret/{context}/{namespace}/{pod}".format(
+        secret_url = "/secret/{context}/{namespace}/{container}".format(
             context=self.config.context,
             namespace=self.config.namespace,
-            pod=pod_name
+            pod=container_name
         )
         LOG.info('Reading secrets for %r', secret_url)
-        pod_secrets = {}
+        container_secrets = {}
         try:
-            pod_secrets = self.config.vault_client.read(secret_url)['data']
+            container_secrets = self.config.vault_client.read(secret_url)['data']
         except Exception as err:
             LOG.error(err)
-            LOG.info('No secrets found for %s.  Skipping...', pod_name)
+            LOG.info('No secrets found for %s.  Skipping...', container_name)
 
-        LOG.info('Found %s secrets', len(pod_secrets))
-        return pod_secrets
+        LOG.info('Found %s secrets', len(container_secrets))
+        return container_secrets
 
     def simple_name(self, desc):
         """Override-able func to get the name of a resource."""
@@ -553,10 +583,11 @@ class ActorBase(Kubernetes):
         TODO: support 'type's other than 'env' to automate putting
         files into the container.
         """
+        changes = set()
         if self.secrets and self.config.vault_client:
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
-                # pod based secrets
+                # container based secrets
                 if desc.kind in ["Ingress", ]:
                     secret_name = desc.metadata.name
 
@@ -577,7 +608,26 @@ class ActorBase(Kubernetes):
                                 'Secret %r exists.  Replacing keys: %s',
                                 secret_name, secrets.keys()
                             )
+                            # read "old" secrets (to get hashes)
+                            old_secrets = Secret(self.config).get_list()
+
                             Secret(self.config).replace(secret_name, secrets)
+                            # re-read secrets, compare hashes to "old" to
+                            # determine if anything has changed.  Since they
+                            # are encrypted this is the only real way
+                            # to know.  Inefficient but secure.
+
+                            new_secrets = Secret(self.config).get_list()
+
+                            # TODO: is this a valid comparison?
+                            if old_secrets != new_secrets:
+                                LOG.info(
+                                    'old_secrets != new_secrets\n%s\n%s',
+                                    old_secrets,
+                                    new_secrets
+                                )
+                                changes.add(secret_name)
+
                         else:
                             LOG.info(
                                 'Secret %r does not exist.  Creating keys: %s',
@@ -586,21 +636,24 @@ class ActorBase(Kubernetes):
                             Secret(self.config).create(secret_name, secrets)
                     return
 
-                for index, pod in enumerate(
+                for index, container in enumerate(
                     desc.spec.template.spec.containers
                 ):
-                    secret_name = pod.name
+                    secret_name = container.name
 
                     default_secrets = self.get_secrets("_default_")
                     override_secrets = self.get_secrets(secret_name)
 
-                    pod_secrets = default_secrets
+                    container_secrets = default_secrets
                     for secret_key in override_secrets:
-                        pod_secrets[secret_key] = override_secrets[secret_key]
+                        container_secrets[secret_key] = override_secrets[secret_key]
 
                     env, envdict, secrets = self.build_env_secrets(
-                        pod_secrets, secret_name
+                        container_secrets, secret_name
                     )
+                    # old env in pod.get("env", [])
+                    # new env in myenv
+                    # are they different?  Ifso, changes.add(secret_name)
 
                     if secrets:
                         if Secret(self.config).exists(secret_name):
@@ -608,16 +661,27 @@ class ActorBase(Kubernetes):
                                 'Secret %r exists.  Replacing keys: %s',
                                 secret_name, secrets.keys()
                             )
+
+                            # read "old" secrets (to get hashes)
+                            old_secrets = Secret(self.config).get_list()
+
                             Secret(self.config).replace(secret_name, secrets)
+
+                            new_secrets = Secret(self.config).get_list()
+
+                            # TODO: is this a valid comparison?
+                            if old_secrets != new_secrets:
+                                changes.add(secret_name)
                         else:
                             LOG.info(
                                 'Secret %r does not exist.  Creating keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
+                            changes.add(secret_name)
 
                     myenv = list(env)
-                    for v in pod.get("env", []):
+                    for v in container.get("env", []):
                         if v.name in envdict:
                             LOG.info('Replacing env %s', v.name)
                         else:
@@ -631,7 +695,7 @@ class ActorBase(Kubernetes):
                     )
 
             else:
-                # container based secrets
+                # (obsolete) pod based secrets
                 secret_name = desc.metadata.name + "-vault"
 
                 default_secrets = self.get_secrets("_default_")
@@ -680,6 +744,8 @@ class ActorBase(Kubernetes):
                             newvalue=myenv
                         )
 
+        return changes
+
 
 class ReadMergeApplyActor(ActorBase):
     """
@@ -690,7 +756,7 @@ class ReadMergeApplyActor(ActorBase):
 
     def apply(self, desc, filename):
         """Read, Merge then Apply."""
-        self.apply_secrets(desc, filename)
+        changes = self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
             # pull from the server
@@ -713,7 +779,15 @@ class ReadMergeApplyActor(ActorBase):
                 h.write(remote.toJSON())
 
         try:
-            self.apply_file(filename)
+            if len(changes):
+                LOG.info(
+                    'Secret changes detected: %s -- Replacing pod',
+                    changes
+                )
+                self.replace_path(filename)
+            else:
+                self.apply_file(filename)
+
         except sh.ErrorReturnCode_1:
             LOG.error('apply_file failed')
 
@@ -721,14 +795,36 @@ class ReadMergeApplyActor(ActorBase):
                 self.delete_path(filename)
             self.create_path(filename)
 
+        return changes
+
 
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource."""
 
     def apply(self, desc, filename):
         """Simple apply with secrets support."""
-        self.apply_secrets(desc, filename)
-        self.apply_file(filename)
+        changes = self.apply_secrets(desc, filename)
+        action = "unknown"
+        try:
+            if len(changes):
+                LOG.info(
+                    'Secret changes detected: %s -- Replacing pod',
+                    changes
+                )
+                action = "replace_path"
+                self.replace_path(filename)
+            else:
+                action = "apply_file"
+                self.apply_file(filename)
+
+        except sh.ErrorReturnCode_1:
+            LOG.error('%s failed', action)
+
+            if self.exists(desc.metadata.name):
+                self.delete_path(filename)
+            self.create_path(filename)
+
+        return changes
 
 
 class DeleteCreateActor(ActorBase):
@@ -736,11 +832,13 @@ class DeleteCreateActor(ActorBase):
 
     def apply(self, desc, filename):
         """Delete then create."""
-        self.apply_secrets(desc, filename)
+        changes = self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
             self.delete_path(filename)
         self.create_path(filename)
+
+        return changes
 
 
 class ReplaceActor(ActorBase):
@@ -748,12 +846,14 @@ class ReplaceActor(ActorBase):
 
     def apply(self, desc, filename):
         """Replace if it exists, Create if it doesn't."""
-        self.apply_secrets(desc, filename)
+        changes = self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
             self.replace_path(filename)
         else:
             self.create_path(filename)
+
+        return changes
 
 
 class CreateIfMissingActor(ActorBase):
@@ -761,10 +861,12 @@ class CreateIfMissingActor(ActorBase):
 
     def apply(self, desc, filename):
         """Create only.  You almost never want this."""
-        self.apply_secrets(desc, filename)
+        changes = self.apply_secrets(desc, filename)
 
         if not self.exists(desc.metadata.name):
             self.create_path(filename)
+
+        return changes
 
 
 class IgnoreActor(ActorBase):
@@ -1497,7 +1599,7 @@ class Kubectl(KubeUtils):
         )
 
     def create_if_missing(self, friendly_resource_type, glob_path):
-
+        """Deprecated.  Create the given resource if it is missing."""
         cache = {}
         for resource_fn in glob2.glob(glob_path):
             with open(resource_fn) as handle:
@@ -1555,5 +1657,7 @@ class Kubectl(KubeUtils):
                 resource = resource_class(self)
                 cache[resource_desc.kind] = resource
 
-            if not cache[resource_desc.kind].exists(resource_desc.metadata.name):
+            if not cache[resource_desc.kind].exists(
+                resource_desc.metadata.name
+            ):
                 self.create_path(resource_fn)

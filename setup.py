@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""kubernetes python utilities."""
 
 import os
 
@@ -13,7 +14,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.4',
+    version='0.2.5',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',
