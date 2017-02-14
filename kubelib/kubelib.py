@@ -209,18 +209,20 @@ class KubeUtils(KubeConfig):
                 resource = resource_class(self)
                 cache[resource_desc.kind] = resource
 
-            replace = False
+            force = False
             if replace_set:
                 # at least some pods ought to be replaced instead of applied
                 container_names = self._get_container_names(resource_desc)
                 for container_name in container_names:
                     if container_name in replace_set:
-                        replace = True
+                        force = True
                         break
 
             # there are configmap changes so we want to replace
             # the pod instead of just applying it.
-            cache[resource_desc.kind].apply(resource_desc, resource_fn, force=replace)
+            cache[resource_desc.kind].apply(
+                resource_desc, resource_fn, force=force
+            )
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
         """Copy a file into the given pod.
