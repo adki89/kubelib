@@ -215,6 +215,7 @@ class KubeUtils(KubeConfig):
                 container_names = self._get_container_names(resource_desc)
                 for container_name in container_names:
                     if container_name in replace_set:
+                        LOG.info('Forcing replacement of %s', resource_fn)
                         force = True
                         break
 
@@ -436,7 +437,7 @@ class ActorBase(Kubernetes):
 
         :param path_or_fn: Path or filename of yaml resource descriptions
         """
-        LOG.info('(=) kubectl replace -f %s', path_or_fn)
+        LOG.info('(=) kubectl replace --force=%s -f %s', force, path_or_fn)
         self.kubectl.replace(
             '-f', path_or_fn,
             '--force={}'.format("true" if force else "false"),
@@ -473,7 +474,7 @@ class ActorBase(Kubernetes):
             return False
         return True
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """NOOP Placeholder to be overridden by sub-classes.
 
         :param desc: Munch resource object
@@ -778,10 +779,11 @@ class ReadMergeApplyActor(ActorBase):
 
         try:
             if force or len(changes):
-                LOG.info(
-                    'Secret changes detected: %s -- Replacing pod',
-                    changes
-                )
+                if changes:
+                    LOG.info(
+                        'Secret changes detected: %s -- Replacing pod',
+                        changes
+                    )
                 self.replace_path(filename, force=force)
             else:
                 self.apply_file(filename)
