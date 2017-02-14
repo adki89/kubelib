@@ -670,6 +670,7 @@ class ActorBase(Kubernetes):
 
                             # TODO: is this a valid comparison?
                             if old_secrets != new_secrets:
+                                LOG.info('Detected change in secrets')
                                 changes.add(secret_name)
                         else:
                             LOG.info(
@@ -849,6 +850,8 @@ class ReplaceActor(ActorBase):
         changes = self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
+            if changes:
+                force = True
             self.replace_path(filename, force=force)
         else:
             self.create_path(filename)
