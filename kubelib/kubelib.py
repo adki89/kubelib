@@ -218,14 +218,9 @@ class KubeUtils(KubeConfig):
                         replace = True
                         break
 
-            if replace:
-                # there are configmap changes so we want to replace
-                # the pod instead of just applying it.
-                cache[resource_desc.kind].replace(resource_desc, resource_fn)
-            else:
-                # if there are secret changes this will turn itself
-                # into a replace.
-                cache[resource_desc.kind].apply(resource_desc, resource_fn)
+            # there are configmap changes so we want to replace
+            # the pod instead of just applying it.
+            cache[resource_desc.kind].apply(resource_desc, resource_fn, force=replace)
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
         """Copy a file into the given pod.
@@ -434,7 +429,7 @@ class ActorBase(Kubernetes):
             namespace=self.config.namespace
         )
 
-    def replace_path(self, path_or_fn):
+    def replace_path(self, path_or_fn, force=False):
         """Simple kubectl replace wrapper.
 
         :param path_or_fn: Path or filename of yaml resource descriptions
@@ -442,6 +437,7 @@ class ActorBase(Kubernetes):
         LOG.info('(=) kubectl replace -f %s', path_or_fn)
         self.kubectl.replace(
             '-f', path_or_fn,
+            '--force={}'.format("true" if force else "false"),
             '--namespace={}'.format(self.config.namespace),
             '--context={}'.format(self.config.context)
         )
@@ -754,7 +750,7 @@ class ReadMergeApplyActor(ActorBase):
     write it, then apply it.
     """
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """Read, Merge then Apply."""
         changes = self.apply_secrets(desc, filename)
 
@@ -779,17 +775,17 @@ class ReadMergeApplyActor(ActorBase):
                 h.write(remote.toJSON())
 
         try:
-            if len(changes):
+            if force or len(changes):
                 LOG.info(
                     'Secret changes detected: %s -- Replacing pod',
                     changes
                 )
-                self.replace_path(filename)
+                self.replace_path(filename, force=force)
             else:
                 self.apply_file(filename)
 
         except sh.ErrorReturnCode_1:
-            LOG.error('apply_file failed')
+            LOG.error('apply_file failed (forcing)')
 
             if self.exists(desc.metadata.name):
                 self.delete_path(filename)
@@ -801,24 +797,24 @@ class ReadMergeApplyActor(ActorBase):
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource."""
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """Simple apply with secrets support."""
         changes = self.apply_secrets(desc, filename)
         action = "unknown"
         try:
-            if len(changes):
+            if force or len(changes):
                 LOG.info(
                     'Secret changes detected: %s -- Replacing pod',
                     changes
                 )
                 action = "replace_path"
-                self.replace_path(filename)
+                self.replace_path(filename, force=force)
             else:
                 action = "apply_file"
                 self.apply_file(filename)
 
         except sh.ErrorReturnCode_1:
-            LOG.error('%s failed', action)
+            LOG.error('%s failed (forcing)', action)
 
             if self.exists(desc.metadata.name):
                 self.delete_path(filename)
@@ -830,7 +826,7 @@ class ApplyActor(ActorBase):
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it."""
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """Delete then create."""
         changes = self.apply_secrets(desc, filename)
 
@@ -844,12 +840,12 @@ class DeleteCreateActor(ActorBase):
 class ReplaceActor(ActorBase):
     """Do a *kubectl replace* on this object."""
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """Replace if it exists, Create if it doesn't."""
         changes = self.apply_secrets(desc, filename)
 
         if self.exists(desc.metadata.name):
-            self.replace_path(filename)
+            self.replace_path(filename, force=force)
         else:
             self.create_path(filename)
 
@@ -859,7 +855,7 @@ class ReplaceActor(ActorBase):
 class CreateIfMissingActor(ActorBase):
     """Create only if the resource is missing."""
 
-    def apply(self, desc, filename):
+    def apply(self, desc, filename, force=False):
         """Create only.  You almost never want this."""
         changes = self.apply_secrets(desc, filename)
 
