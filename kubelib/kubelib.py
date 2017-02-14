@@ -670,7 +670,10 @@ class ActorBase(Kubernetes):
 
                             # TODO: is this a valid comparison?
                             if old_secrets != new_secrets:
-                                LOG.info('Detected change in secrets')
+                                LOG.info(
+                                    'Detected change in secrets (%s)',
+                                    secret_name
+                                )
                                 changes.add(secret_name)
                         else:
                             LOG.info(
@@ -793,6 +796,7 @@ class ReadMergeApplyActor(ActorBase):
                     self.delete_path(filename)
                     self.create_path(filename)
                 else:
+
                     self.replace_path(filename, force=force)
             else:
                 self.apply_file(filename)
@@ -860,7 +864,15 @@ class ReplaceActor(ActorBase):
         if self.exists(desc.metadata.name):
             if changes:
                 force = True
-            self.replace_path(filename, force=force)
+
+            if force and desc.kind in ['Deployment']:
+                # even with force=true replacing
+                # a deployment doesn't cleanup and
+                # redeploy pods.
+                self.delete_path(filename)
+                self.create_path(filename)
+            else:
+                self.replace_path(filename, force=force)
         else:
             self.create_path(filename)
 
