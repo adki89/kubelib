@@ -221,6 +221,12 @@ class KubeUtils(KubeConfig):
                         LOG.info('Forcing replacement of %s', resource_fn)
                         force = True
                         break
+                    else:
+                        LOG.info(
+                            '%s is not in %s',
+                            container_name,
+                            container_names
+                        )
 
             # there are configmap changes so we want to replace
             # the pod instead of just applying it.
@@ -398,6 +404,19 @@ class ActorBase(Kubernetes):
             ))
         )
 
+    def describe(self, name):
+        """Return a yaml-ish text blob.
+
+        Not helpful for automation, very helpful for humans.
+        """
+        try:
+            return self.kubectl.describe(
+                self.url_type,
+                name
+            )
+        except sh.ErrorReturnCode as err:
+            logging.error("Unexpected response: %s", err)
+
     def patch(self, name, data):
         """Update one resource."""
         return self._patch(self.single_uri.format(
@@ -420,7 +439,7 @@ class ActorBase(Kubernetes):
                 '--namespace={}'.format(self.config.namespace)
             )
         except sh.ErrorReturnCode as err:
-            logging.error("Unexpected response: %r", err)
+            logging.error("Unexpected response: %s", err)
 
     def apply_file(self, path_or_fn):
         """Simple kubectl apply wrapper.
