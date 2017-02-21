@@ -412,7 +412,9 @@ class ActorBase(Kubernetes):
         try:
             return self.kubectl.describe(
                 self.url_type,
-                name
+                name,
+                '--context={}'.format(self.config.context),
+                '--namespace={}'.format(self.config.namespace)                
             )
         except sh.ErrorReturnCode as err:
             logging.error("Unexpected response: %s", err)
