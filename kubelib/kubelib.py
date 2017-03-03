@@ -414,7 +414,7 @@ class ActorBase(Kubernetes):
                 self.url_type,
                 name,
                 '--context={}'.format(self.config.context),
-                '--namespace={}'.format(self.config.namespace)                
+                '--namespace={}'.format(self.config.namespace)
             )
         except sh.ErrorReturnCode as err:
             logging.error("Unexpected response: %s", err)
@@ -1042,6 +1042,37 @@ class Job(DeleteCreateActor):
     secrets = True
 
 
+class LimitRange(ReplaceActor):
+    """LimitRange resource."""
+
+    url_type = "limitranges"
+    aliases = ["limit"]
+    secrets = False
+
+    def create(self, limits):
+        """Helper to create limits on the namespace."""
+        response = self._post(
+            "/namespaces/{namespace}/limitranges".format(
+                namespace=self.config.namespace
+            ),
+            data={
+                "kind": "LimitRange",
+                "apiVersion": "v1",
+                "metadata": {
+                    "name": "core-resource-limits",
+                },
+                "spec": {
+                    "limits": limits
+                }
+            }
+        )
+
+        if response['status'] == "Failure":
+            raise KubeError('Failed to create namespace limitrange')
+
+        return True
+
+
 class Namespace(CreateIfMissingActor):
     """Namespace resource.
 
@@ -1587,6 +1618,7 @@ RESOURCE_CLASSES = (
     HorizontalPodAutoscaler,
     Ingress,
     Job,
+    LimitRange,
     Namespace,
     Node,
     PersistentVolume,
