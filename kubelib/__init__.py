@@ -11,6 +11,7 @@ from .kubelib import (
     HorizontalPodAutoscaler,
     Ingress,
     Job,
+    LimitRange,
     Namespace,
     Node,
     PersistentVolume,
