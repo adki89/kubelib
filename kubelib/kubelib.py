@@ -1092,7 +1092,10 @@ class LimitRange(ReplaceActor):
                 'Expected response to include "status" got %s' % response
             )
         elif response['status'] == "Failure":
-            raise KubeError('Failed to create namespace limitrange')
+            # this is where we land if the limitrange already exists
+            # LOG.error(response)
+            # raise KubeError('Failed to create namespace limitrange')
+            return False
 
         return True
 
