@@ -75,6 +75,9 @@ class KubeConfig(object):
             raise ContextRequired('Context %r not found' % self.context)
 
         self.namespace = None
+        if hasattr(namespace, "metadata"):
+            namespace = namespace.metadata.name
+
         self.set_namespace(namespace)
 
         cluster_name = self.context_obj.context.cluster
@@ -963,12 +966,29 @@ class ConfigMap(ReplaceActor):
             with open(os.path.join(tdir, key), 'w') as h:
                 h.write(literal_dict[key])
 
-        self.kubectl.create.configmap(
-            configkey,
-            "--from-file={}".format(tdir),
-            '--context={}'.format(self.config.context),
-            '--namespace={}'.format(self.config.namespace)
-        )
+        max_timeout = 120
+        retry_delay = 1
+        success = False
+        start = time.time()
+
+        while success is False and time.time() < start + max_timeout:
+            try:
+                self.kubectl.create.configmap(
+                    configkey,
+                    "--from-file={}".format(tdir),
+                    '--context={}'.format(self.config.context),
+                    '--namespace={}'.format(self.config.namespace)
+                )
+                success = True
+            except sh.ErrorReturnCode_1 as err:
+                LOG.error("Error %s creating configmap", err)
+                time.sleep(
+                    min(
+                        retry_delay,
+                        (max_timeout - (time.time() - start))
+                    )
+                )
+                retry_delay = retry_delay * 2
 
         shutil.rmtree(tdir)
 
@@ -1067,7 +1087,11 @@ class LimitRange(ReplaceActor):
             }
         )
 
-        if response['status'] == "Failure":
+        if 'status' not in response:
+            raise KubeError(
+                'Expected response to include "status" got %s' % response
+            )
+        elif response['status'] == "Failure":
             raise KubeError('Failed to create namespace limitrange')
 
         return True
