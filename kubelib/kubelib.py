@@ -1071,7 +1071,8 @@ class LimitRange(ReplaceActor):
 
     def create(self, limits):
         """Helper to create limits on the namespace."""
-        response = self._post(
+        # response =
+        self._post(
             "/namespaces/{namespace}/limitranges".format(
                 namespace=self.config.namespace
             ),
@@ -1087,15 +1088,17 @@ class LimitRange(ReplaceActor):
             }
         )
 
-        if 'status' not in response:
-            raise KubeError(
-                'Expected response to include "status" got %s' % response
-            )
-        elif response['status'] == "Failure":
-            # this is where we land if the limitrange already exists
-            # LOG.error(response)
-            # raise KubeError('Failed to create namespace limitrange')
-            return False
+        # great.  there isn't a status in the response.
+        # if 'status' not in response:
+
+        #     raise KubeError(
+        #         'Expected response to include "status" got %s' % response
+        #     )
+        # elif response['status'] == "Failure":
+        #     # this is where we land if the limitrange already exists
+        #     # LOG.error(response)
+        #     # raise KubeError('Failed to create namespace limitrange')
+        #     return False
 
         return True
 
