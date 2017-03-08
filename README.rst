@@ -44,6 +44,12 @@ Upgrade kubernetes based on a directory of yaml files::
 
 This will look at every yaml file and act based on the "Kind" field.  Deployments are replaced, replication controllers are deleted and re-created.  Other "Kind" resources are created if a resource with that "Kind" and "Name" is not already present.
 
+Command Line Utilities
+----------------------
+
+This package provides a few command line utilities, the most helpful (to me) is `see_limits` which displays the resource limits for all pods and namespaces within a context.
+
+
 ------
 
 Initial package setup borrowed from `https://github.com/kennethreitz/samplemod`
