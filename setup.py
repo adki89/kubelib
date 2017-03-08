@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.14',
+    version='0.2.15',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',
@@ -34,7 +34,8 @@ setup(
             'make_namespace=kubelib.cli:make_namespace',
             'make_nodeport=kubelib.cli:make_nodeport',
             'wait_for_pod=kubelib.cli:wait_for_pod',
-            'envdir_to_configmap=kubelib.cli:envdir_to_configmap'
+            'envdir_to_configmap=kubelib.cli:envdir_to_configmap',
+            'see_limits=kubelib.cli:see_limits'
         ]
     }
 )
