@@ -301,31 +301,22 @@ UNITS = {
     '': 1000000000
 }
 
+def as_value(mystr):
+    numext = re.compile(r"([0-9]*)(.*)")
+    num, unit = numext.match(mystr).groups()
+    return float(num) * UNITS.get(unit, 1)
+
 def less_than(first, second):
     """
     Return true if first is less than second.  These are strings with units ala 100m, 10Mi, etc..
     """
-    numext = re.compile(r"([0-9]*)(.*)")
-    first_num, first_unit = numext.match(first).groups()
-    second_num, second_unit = numext.match(second).groups()
-
-    first_num = float(first_num) * UNITS.get(first_unit, 1)
-    second_num = float(second_num) * UNITS.get(second_unit, 1)
-    # print("%s < %s" % (first_num, second_num))
-    return float(first_num) < float(second_num)
+    return as_value(first) < as_value(second)
 
 def greater_than(first, second):
     """
     Return true if first is greater than second.  These are strings with units ala 100m, 10Mi, etc..
     """
-    numext = re.compile(r"([0-9]*)(.*)")
-    first_num, first_unit = numext.match(first).groups()
-    second_num, second_unit = numext.match(second).groups()
-
-    first_num = float(first_num) * UNITS.get(first_unit, 1)
-    second_num = float(second_num) * UNITS.get(second_unit, 1)
-    # print("%s < %s" % (first_num, second_num))
-    return float(first_num) > float(second_num)
+    return as_value(first) > as_value(second)
 
 def see_limits():
     """
