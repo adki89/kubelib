@@ -8,6 +8,7 @@ import kubelib
 import glob
 import os
 import sh
+# import colorama
 
 from kubelib.tableview import TableView
 
@@ -68,7 +69,6 @@ class InvalidBranch(Exception):
 
     def __str__(self):
         return repr(self.value)
-
 
 def add_prefix(namespace):
     """Derp, add the prefix."""
@@ -292,6 +292,40 @@ def _get_namespace_limits(kube, namespace):
 
     return kubelib.LimitRange(kube).get_list()
 
+UNITS = {
+    'm': 1000000,
+    'Mi': 1000000,
+    'M': 1000000,
+    'Gi': 1000000000,
+    'Ti': 1000000000000,
+    '': 1000000000
+}
+
+def less_than(first, second):
+    """
+    Return true if first is less than second.  These are strings with units ala 100m, 10Mi, etc..
+    """
+    numext = re.compile(r"([0-9]*)(.*)")
+    first_num, first_unit = numext.match(first).groups()
+    second_num, second_unit = numext.match(second).groups()
+
+    first_num = float(first_num) * UNITS.get(first_unit, 1)
+    second_num = float(second_num) * UNITS.get(second_unit, 1)
+    # print("%s < %s" % (first_num, second_num))
+    return float(first_num) < float(second_num)
+
+def greater_than(first, second):
+    """
+    Return true if first is greater than second.  These are strings with units ala 100m, 10Mi, etc..
+    """
+    numext = re.compile(r"([0-9]*)(.*)")
+    first_num, first_unit = numext.match(first).groups()
+    second_num, second_unit = numext.match(second).groups()
+
+    first_num = float(first_num) * UNITS.get(first_unit, 1)
+    second_num = float(second_num) * UNITS.get(second_unit, 1)
+    # print("%s < %s" % (first_num, second_num))
+    return float(first_num) > float(second_num)
 
 def see_limits():
     """
@@ -306,6 +340,8 @@ def see_limits():
     """
     args = docopt.docopt(see_limits.__doc__)
     context = args['--context']
+    exit_code = 0
+    errors = []
 
     if context == "None":
         LOG.debug('Defaulting to the current kubectl context')
@@ -466,11 +502,60 @@ def see_limits():
                     ),
                 }
 
+                if less_than(row['container.min.memory'], namespace_limit.get('container.min.memory')):
+                    msg = ('%s Pod %s min memory %s is below namespace minimum %s' % (
+                        namespace_name,
+                        pod_name,
+                        row['container.min.memory'],
+                        namespace_limit.get('container.min.memory')
+                    ))
+                    print(msg)
+                    errors.append(msg)
+                    exit_code = 1
+
+                if greater_than(row['container.max.memory'], namespace_limit.get('container.max.memory')):
+                    msg = ('%s Pod %s max memory %s is greater than namespace maximum %s' % (
+                        namespace_name,
+                        pod_name,
+                        row['container.max.memory'],
+                        namespace_limit.get('container.max.memory')
+                    ))
+                    print(msg)
+                    errors.append(msg)
+                    exit_code = 1
+
+                if less_than(row['container.min.cpu'], namespace_limit.get('container.min.cpu')):
+                    msg = ('%s Pod %s min cpu %s is below namespace minimum %s' % (
+                        namespace_name,
+                        pod_name,
+                        row['container.min.cpu'],
+                        namespace_limit.get('container.min.cpu')
+                    ))
+                    print(msg)
+                    errors.append(msg)
+                    exit_code = 1
+
+                if greater_than(row['container.max.cpu'], namespace_limit.get('container.max.cpu')):
+                    msg = ('%s Pod %s max cpu %s is greater than namespace maximum %s' % (
+                        namespace_name,
+                        pod_name,
+                        row['container.max.cpu'],
+                        namespace_limit.get('container.max.cpu')
+                    ))
+                    print(msg)
+                    errors.append(msg)
+                    exit_code = 1
+
+                    # colorama.Fore.RED + "!! " + str + " !!" + colorama.Style.RESET_ALL)
                 data.append(row)
 
         tv.set_data(data)
         print(tv)
 
+    if errors:
+        for err in errors:
+            print(err)
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     import doctest
