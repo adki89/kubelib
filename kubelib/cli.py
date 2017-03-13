@@ -73,6 +73,7 @@ class InvalidBranch(Exception):
     def __str__(self):
         return repr(self.value)
 
+
 def add_prefix(namespace):
     """Derp, add the prefix."""
     if PREFIX:
@@ -300,14 +301,17 @@ UNITS = {
     'Mi': 1000000,
     'M': 1000000,
     'Gi': 1000000000,
+    'G': 1000000000,
     'Ti': 1000000000000,
     '': 1000000000
 }
+
 
 def as_value(mystr):
     numext = re.compile(r"([0-9]*)(.*)")
     num, unit = numext.match(mystr).groups()
     return float(num) * UNITS.get(unit, 1)
+
 
 def less_than(first, second):
     """
@@ -315,11 +319,13 @@ def less_than(first, second):
     """
     return as_value(first) < as_value(second)
 
+
 def greater_than(first, second):
     """
     Return true if first is greater than second.  These are strings with units ala 100m, 10Mi, etc..
     """
     return as_value(first) > as_value(second)
+
 
 def see_limits():
     """
