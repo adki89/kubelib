@@ -29,6 +29,10 @@ from .kubelib import (
     RoleBinding,
 )
 
+from .tableview import (
+    TableView
+)
+
 from .cli import (
     _make_namespace
 )

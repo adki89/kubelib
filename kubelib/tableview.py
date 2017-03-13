@@ -3,11 +3,14 @@ import logging.config
 
 LOG = logging.getLogger(__name__)
 
-trans = "".maketrans(
-    "/-v\\+^|><`*:",
-    "\u250C\u2500\u252C\u2510\u253C\u2534\u2502\u251C\u2524\u2514\u2518\u250A"
-)
-
+simple_ascii = "/-v\\+^|><`*:"
+fancy_unicode = "\u250C\u2500\u252C\u2510\u253C\u2534\u2502\u251C\u2524\u2514\u2518\u250A"
+try:
+    trans = "".maketrans(simple_ascii, fancy_unicode)
+except AttributeError:
+    import string
+    # apparantly python2 doesn't get to have nice things.
+    trans = string.maketrans(simple_ascii, simple_ascii)
 
 class TableView(object):
     """It's turtles all the way down."""
@@ -57,7 +60,7 @@ class TableView(object):
 
         value = []
         if self.link and self.link in data:
-            value.append(data[self.link])
+            value.append(str(data[self.link]))
         elif self.link:
             LOG.debug('could not find %s in %s', self.link, data.keys())
         else:
@@ -66,10 +69,11 @@ class TableView(object):
         for column in self.columns:
             v = column.get_value(data)
             if v:
-                value.append(v)
+                value.append(str(v))
         self.set_format()
-
+        # LOG.info('value: %s', value)
         return self.data_format.format(":".translate(trans).join(value))
+
 
     def layout(self, data):
         autowidth = 0
@@ -83,7 +87,7 @@ class TableView(object):
         if autowidth == 0:
             for data_dict in data:
                 if self.link in data_dict:
-                    autowidth = max(autowidth, len(data_dict[self.link]))
+                    autowidth = max(autowidth, len(str(data_dict[self.link])))
                     LOG.debug(
                         "found %s == %s (%s)",
                         self.link, data_dict[self.link],
@@ -147,7 +151,7 @@ class TableView(object):
 
     def __str__(self):
         self.layout(self.data)
-        
+
         vbar = "|".translate(trans)
 
         out = []

@@ -10,7 +10,10 @@ import os
 import sh
 # import colorama
 
-from kubelib.tableview import TableView
+try:
+    from kubelib.tableview import TableView
+except ImportError:
+    from .tableview import TableView
 
 import docopt
 
@@ -359,6 +362,9 @@ def see_limits():
     pod.add_columns([pod_cpu, pod_mem])
 
     container = TableView('Container', center=True)
+    container_restart = TableView('Restarts', center=True, link="container.restart")
+    container_last = TableView('LastState', center=True, link="container.laststate")
+
     container_cpu = TableView('CPU', center=True)
     container_cpu_min = TableView('min', center=True, link="container.min.cpu")
     container_cpu_max = TableView('max', center=True, link="container.max.cpu")
@@ -388,7 +394,7 @@ def see_limits():
     container_maxratio.add_column(container_maxratio_cpu)
 
     container.add_columns([
-        container_cpu, container_mem,
+        container_restart, container_last, container_cpu, container_mem,
         container_default, container_defaultreq, container_maxratio
     ])
 
@@ -454,12 +460,17 @@ def see_limits():
         pods = kubelib.Pod(kube).get_list()
         for pod in pods:
             pod_name = pod.metadata.name
+            cstatus = {}
+            for cstatus_dict in pod.status.containerStatuses:
+                cstatus[cstatus_dict['name']] = cstatus_dict
+
             for container in pod.spec.containers:
                 row = {
                     'namespace': namespace_name,
                     'pod.name': pod_name,
                     'container.name': container.name,
-
+                    'container.restart': cstatus[container.name].restartCount,
+                    'container.laststate': cstatus[container.name].lastState.get('terminated', {}).get('reason', ''),
                     'container.min.cpu': container.get(
                         "resources", {}
                     ).get(

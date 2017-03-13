@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.15',
+    version='0.2.22',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',
@@ -27,7 +27,8 @@ setup(
         'PyYaml',
         'sh',
         'glob2',
-        'docopt'
+        'docopt',
+        'requests'
     ],
     entry_points={
         'console_scripts': [
