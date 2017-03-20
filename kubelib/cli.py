@@ -297,13 +297,15 @@ def _get_namespace_limits(kube, namespace):
     return kubelib.LimitRange(kube).get_list()
 
 UNITS = {
-    'm': 1000000,
+    'm':  1000000,
     'Mi': 1000000,
-    'M': 1000000,
+    'M':  1000000,
+
     'Gi': 1000000000,
-    'G': 1000000000,
+    'G':  1000000000,
+    '':   1000000000,
+
     'Ti': 1000000000000,
-    '': 1000000000
 }
 
 

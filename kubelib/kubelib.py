@@ -337,8 +337,23 @@ class Kubernetes(object):
 
     def _get(self, url, **kwargs):
         url = self.config.cluster.server + self.api_base + url
-        response = self.client.get(url, **kwargs)
-        return response.json()
+        as_json = None
+        max_retry_count = 10
+        retries = 0
+
+        while as_json is None and retries < max_retry_count:
+            response = self.client.get(url, **kwargs)
+            try:
+                as_json = response.json()
+            except ValueError as err:
+                LOG.error(
+                    'Invalid response: %s [%i/%i]',
+                    err, retries, max_retry_count
+                )
+                time.sleep(1)
+                retries += 1
+
+        return as_json
 
     def _post(self, url, data):
         url = self.config.cluster.server + self.api_base + url
