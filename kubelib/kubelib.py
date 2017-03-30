@@ -100,18 +100,33 @@ class KubeConfig(object):
                 self.user = user.user
                 self.user.name = user_name
 
-        self.ca = os.path.expanduser("~/.kube/{}".format(
-            self.cluster['certificate-authority']
-        ))
-
-        self.cert = (
-            os.path.expanduser("~/.kube/{}".format(
-                self.user["client-certificate"]
-            )),
-            os.path.expanduser("~/.kube/{}".format(
-                self.user["client-key"]
+        try:
+            self.ca = os.path.expanduser("~/.kube/{}".format(
+                self.cluster['certificate-authority']
             ))
-        )
+        except KeyError:
+            ca_raw = self.cluster.get('certificate-authority-data', '')
+            if ca_raw:
+                # I would be shocked if this worked.
+                self.ca = os.path.expanduser("~/.kube/ca.crt")
+                with open(self.ca, 'w') as h:
+                    h.write(ca_raw)
+
+        try:
+            # use TLS cert if available
+            self.cert = (
+                os.path.expanduser("~/.kube/{}".format(
+                    self.user["client-certificate"]
+                )),
+                os.path.expanduser("~/.kube/{}".format(
+                    self.user["client-key"]
+                ))
+            )
+        except KeyError:
+            LOG.info('user: %s', self.user)
+            self.cert = None
+            self.token = self.user['auth-provider']['config']['access-token']
+            self.token_expire = self.user['auth-provider']['config']['expiry']
 
         self.req = None
 
@@ -328,8 +343,18 @@ class Kubernetes(object):
         self.config = kubeconfig
         if self.config.req is None:
             self.client = requests.Session()
-            self.client.cert = kubeconfig.cert
-            self.client.verify = self.config.ca
+
+            # use TLS if available
+            if self.config.cert:
+                self.client.cert = self.config.cert
+                self.client.verify = self.config.ca
+            else:
+                # fallback to token auth
+                self.client.headers.update({
+                    'Authorization': 'Bearer %s' % self.config.token
+                })
+                self.client.verify = False
+
         else:
             self.client = self.config.req
 
