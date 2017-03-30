@@ -312,20 +312,36 @@ UNITS = {
 def as_value(mystr):
     numext = re.compile(r"([0-9]*)(.*)")
     num, unit = numext.match(mystr).groups()
-    return float(num) * UNITS.get(unit, 1)
+    try:
+        value = float(num) * UNITS.get(unit, 1)
+    except ValueError:
+        LOG.error('Unable to convert %s to a value', mystr)
+        value = ""
+
+    return value
 
 
 def less_than(first, second):
     """
-    Return true if first is less than second.  These are strings with units ala 100m, 10Mi, etc..
+    Return true if first is less than second.  These are strings with units
+    ala 100m, 10Mi, etc..
     """
+    if first is None or second is None:
+        LOG.error('less_than(%s, %s) does not make sense.', first, second)
+        return True
+
     return as_value(first) < as_value(second)
 
 
 def greater_than(first, second):
     """
-    Return true if first is greater than second.  These are strings with units ala 100m, 10Mi, etc..
+    Return true if first is greater than second.  These are strings with units
+    ala 100m, 10Mi, etc..
     """
+    if first is None or second is None:
+        LOG.error('less_than(%s, %s) does not make sense.', first, second)
+        return True
+
     return as_value(first) > as_value(second)
 
 
@@ -442,19 +458,50 @@ def see_limits():
                     namespace_limit['pod.max.memory'] = limit.max.memory
 
                 elif limit.type == "Container":
-                    namespace_limit['container.min.cpu'] = limit.min.cpu
-                    namespace_limit['container.min.memory'] = limit.min.memory
-                    namespace_limit['container.max.cpu'] = limit.max.cpu
-                    namespace_limit['container.max.memory'] = limit.max.memory
+                    try:
+                        namespace_limit['container.min.cpu'] = limit.min.cpu
+                    except AttributeError:
+                        pass
+
+                    try:
+                        namespace_limit['container.min.memory'] = limit.min.memory
+                    except AttributeError:
+                        pass
+
+                    try:
+                        namespace_limit['container.max.cpu'] = limit.max.cpu
+                    except AttributeError:
+                        pass
+
+                    try:
+                        namespace_limit['container.max.memory'] = limit.max.memory
+                    except AttributeError:
+                        pass
+
                     # default
-                    namespace_limit['container.default.cpu'] = limit.default.cpu
-                    namespace_limit['container.default.memory'] = limit.default.memory
+                    try:
+                        namespace_limit['container.default.cpu'] = limit.default.cpu
+                    except AttributeError:
+                        pass
+
+                    try:
+                        namespace_limit['container.default.memory'] = limit.default.memory
+                    except AttributeError:
+                        pass
+
                     # defrequest
                     namespace_limit['container.defaultRequest.cpu'] = limit.defaultRequest.cpu
-                    namespace_limit['container.defaultRequest.memory'] = limit.defaultRequest.memory
+
+                    try:
+                        namespace_limit['container.defaultRequest.memory'] = limit.defaultRequest.memory
+                    except AttributeError:
+                        pass
 
                     # maxratio
-                    namespace_limit['container.maxLimitRequestRatio.cpu'] = limit.maxLimitRequestRatio.cpu
+                    try:
+                        namespace_limit['container.maxLimitRequestRatio.cpu'] = limit.maxLimitRequestRatio.cpu
+                    except AttributeError:
+                        pass
 
                 elif limit.type == "PersistentVolumeClaim":
                     namespace_limit['pvc.min.storage'] = limit.min.storage
@@ -485,7 +532,7 @@ def see_limits():
                         'requests', {}
                     ).get(
                         'cpu',
-                        namespace_limit.get('container.defaultRequest.cpu', '')
+                        namespace_limit.get('container.defaultRequest.cpu')
                     ),
                     'container.min.memory': container.get(
                         "resources", {}
@@ -493,7 +540,7 @@ def see_limits():
                         'requests', {}
                     ).get(
                         'memory',
-                        namespace_limit.get('container.defaultRequest.memory', '')
+                        namespace_limit.get('container.defaultRequest.memory')
                     ),
                     'container.max.cpu': container.get(
                         "resources", {}
@@ -501,18 +548,24 @@ def see_limits():
                         'limits', {}
                     ).get(
                         'cpu',
-                        namespace_limit.get('container.default.cpu', '')
+                        namespace_limit.get('container.default.cpu')
                     ),
                     'container.max.memory': container.get(
                         "resources", {}
                     ).get(
                         'limits', {}
                     ).get(
-                        'memory', namespace_limit.get('container.default.memory', '')
+                        'memory', namespace_limit.get('container.default.memory')
                     ),
                 }
 
-                if less_than(row['container.min.memory'], namespace_limit.get('container.min.memory')):
+                if namespace_limit.get('container.min.memory') is None:
+                    # unlimited
+                    pass
+                elif less_than(
+                    row['container.min.memory'],
+                    namespace_limit.get('container.min.memory')
+                ):
                     msg = ('%s Pod %s min memory %s is below namespace minimum %s' % (
                         namespace_name,
                         pod_name,
@@ -523,8 +576,14 @@ def see_limits():
                     errors.append(msg)
                     exit_code = 1
 
-                if greater_than(row['container.max.memory'], namespace_limit.get('container.max.memory')):
-                    msg = ('%s Pod %s max memory %s is greater than namespace maximum %s' % (
+                if namespace_limit.get('container.max.memory') is None:
+                    # unlimited
+                    pass
+                elif greater_than(
+                    row['container.max.memory'],
+                    namespace_limit.get('container.max.memory')
+                ):
+                    msg = ('%s Pod %s max memory %s is above namespace maximum %s' % (
                         namespace_name,
                         pod_name,
                         row['container.max.memory'],
@@ -534,7 +593,13 @@ def see_limits():
                     errors.append(msg)
                     exit_code = 1
 
-                if less_than(row['container.min.cpu'], namespace_limit.get('container.min.cpu')):
+                if namespace_limit.get('container.min.cpu') is None:
+                    # unlimited
+                    pass
+                elif less_than(
+                    row['container.min.cpu'],
+                    namespace_limit.get('container.min.cpu')
+                ):
                     msg = ('%s Pod %s min cpu %s is below namespace minimum %s' % (
                         namespace_name,
                         pod_name,
@@ -545,8 +610,14 @@ def see_limits():
                     errors.append(msg)
                     exit_code = 1
 
-                if greater_than(row['container.max.cpu'], namespace_limit.get('container.max.cpu')):
-                    msg = ('%s Pod %s max cpu %s is greater than namespace maximum %s' % (
+                if namespace_limit.get('container.max.cpu') is None:
+                    # unlimited
+                    pass
+                elif greater_than(
+                    row['container.max.cpu'],
+                    namespace_limit.get('container.max.cpu')
+                ):
+                    msg = ('%s Pod %s max cpu %s is above namespace maximum %s' % (
                         namespace_name,
                         pod_name,
                         row['container.max.cpu'],
