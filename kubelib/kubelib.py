@@ -249,7 +249,7 @@ class KubeUtils(KubeConfig):
             # there are configmap changes so we want to replace
             # the pod instead of just applying it.
             cache[resource_desc.kind].apply(
-                resource_desc, resource_fn, force=force
+                resource_desc, resource_fn, force=force or cache[resource_desc.kind].always_force
             )
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
@@ -383,7 +383,16 @@ class Kubernetes(object):
     def _post(self, url, data):
         url = self.config.cluster.server + self.api_base + url
         response = self.client.post(url, json=data)
-        return response.json()
+
+        if response.status_code == 401:
+            raise KubeError('POST %s returned: Unauthorized 401' % url)
+
+        try:
+            output = response.json()
+        except json.decoder.JSONDecodeError:
+            raise KubeError('Unable to JSON decode response: %s', response)
+
+        return output
 
     def _put(self, url, data):
         url = self.config.cluster.server + self.api_base + url
@@ -418,6 +427,7 @@ class ActorBase(Kubernetes):
     aliases = []
     cache = None
     secrets = False
+    always_force = False
 
     def get_list(self):
         """Retrieve a list of munch objects.
@@ -914,7 +924,7 @@ class DeleteCreateActor(ActorBase):
         """Delete then create."""
         changes = self.apply_secrets(desc, filename)
 
-        if self.exists(desc.metadata.name):
+        if self.exists(desc.metadata.name) or force:
             self.delete_path(filename)
         self.create_path(filename)
 
@@ -1097,6 +1107,7 @@ class Ingress(ReplaceActor):
 class Job(DeleteCreateActor):
     """Job resource."""
 
+    always_force = True
     url_type = "jobs"
     api_base = "/apis/extensions/v1beta1"
     secrets = True
@@ -1517,7 +1528,9 @@ class Secret(ReplaceActor):
         """Create a new secret(s)."""
         encoded_dict = {}
         for key in dict_of_secrets:
-            encoded_dict[key] = base64.b64encode(str(dict_of_secrets[key]))
+            # base64 wants bytes, we may have str, int or even floats.  _but_
+            # json won't encode bytes, so we have to decode to string.
+            encoded_dict[key] = base64.b64encode("{}".format(dict_of_secrets[key]).encode()).decode('UTF-8')
 
         response = self._post(
             "/namespaces/{namespace}/secrets".format(

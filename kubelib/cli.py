@@ -516,7 +516,7 @@ def see_limits():
         for pod in pods:
             pod_name = pod.metadata.name
             cstatus = {}
-            for cstatus_dict in pod.status.containerStatuses:
+            for cstatus_dict in getattr(pod.status, "containerStatuses", []):
                 cstatus[cstatus_dict['name']] = cstatus_dict
 
             for container in pod.spec.containers:
@@ -524,8 +524,8 @@ def see_limits():
                     'namespace': namespace_name,
                     'pod.name': pod_name,
                     'container.name': container.name,
-                    'container.restart': cstatus[container.name].restartCount,
-                    'container.laststate': cstatus[container.name].lastState.get('terminated', {}).get('reason', ''),
+                    'container.restart': cstatus.get(container.name, {}).get("restartCount", '?'),
+                    'container.laststate': cstatus.get(container.name, {}).get("lastState", {}).get('terminated', {}).get('reason', ''),
                     'container.min.cpu': container.get(
                         "resources", {}
                     ).get(
