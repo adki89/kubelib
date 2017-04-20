@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import time
+import OpenSSL
 
 import glob2
 
@@ -101,9 +102,15 @@ class KubeConfig(object):
                 self.user.name = user_name
 
         try:
-            self.ca = os.path.expanduser("~/.kube/{}".format(
-                self.cluster['certificate-authority']
-            ))
+            if os.path.exists(self.cluster['certificate-authority']):
+                self.ca = self.cluster['certificate-authority']
+            else:
+                self.ca = os.path.expanduser("~/.kube/{}".format(
+                    self.cluster['certificate-authority']
+                ))
+
+            if not os.path.exists(self.ca):
+                LOG.error('CA file %s does not exist.', self.ca)
         except KeyError:
             ca_raw = self.cluster.get('certificate-authority-data', '')
             if ca_raw:
@@ -114,14 +121,21 @@ class KubeConfig(object):
 
         try:
             # use TLS cert if available
-            self.cert = (
-                os.path.expanduser("~/.kube/{}".format(
-                    self.user["client-certificate"]
-                )),
-                os.path.expanduser("~/.kube/{}".format(
+            if os.path.exists(self.user["client-certificate"]):
+                self.cert = (
+                    self.user["client-certificate"],
                     self.user["client-key"]
-                ))
-            )
+                )
+            else:
+                # relative to kube dir
+                self.cert = (
+                    os.path.expanduser("~/.kube/{}".format(
+                        self.user["client-certificate"]
+                    )),
+                    os.path.expanduser("~/.kube/{}".format(
+                        self.user["client-key"]
+                    ))
+                )
         except KeyError:
             LOG.info('user: %s', self.user)
             self.cert = None
@@ -367,7 +381,11 @@ class Kubernetes(object):
         retries = 0
 
         while as_json is None and retries < max_retry_count:
-            response = self.client.get(url, **kwargs)
+            try:
+                response = self.client.get(url, **kwargs)
+            except OpenSSL.SSL.Error as err:
+                LOG.error('Attempted self.client.get(%s, %s)', url, kwargs)
+                raise err
             try:
                 as_json = response.json()
             except ValueError as err:
