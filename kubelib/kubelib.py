@@ -199,7 +199,7 @@ class KubeUtils(KubeConfig):
 
         return containers
 
-    def apply_path(self, path, recursive=False, replace_set=None):
+    def apply_path(self, path, recursive=False, replace_set=None, context=None):
         """Apply all the yaml files in `path` to the current context/namespace.
 
         Exactly what apply means depends on the resource type.
@@ -207,8 +207,11 @@ class KubeUtils(KubeConfig):
         :param path: Directory of yaml resources
         :param recursive: True to recurse into subdirectories
         :param reload_set: Set of containers that should be reloaded
+        :param context: optional prefer yaml in this directory
         """
         path.rstrip('/')
+        clean_path = os.path.basename(path).split(os.sep)[-1]
+
         if replace_set is None:
             replace_set = set()
 
@@ -225,6 +228,16 @@ class KubeUtils(KubeConfig):
 
             if not resource_fn.endswith(('.yml', '.yaml')):
                 continue
+
+            if context and os.path.dirname(resource_fn).split(os.sep)[-1] not in [clean_path, context]:
+                LOG.info(
+                    'Skipping %s (not in %s or %s)',
+                    resource_fn, clean_path, context
+                )
+                continue
+
+            # TODO: this isn't quite right yet.. we want to ignore /kube/myfile.yaml when /kube/context/myfile.yaml exists
+            # which means we have to do this in two passes instead of one.
 
             with open(resource_fn, 'r') as handle:
                 resource_content = handle.read()
