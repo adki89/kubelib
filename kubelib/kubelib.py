@@ -220,24 +220,47 @@ class KubeUtils(KubeConfig):
         else:
             path += "/*"
 
-        cache = {}
+        all_resource_fn = []
+        by_fn = {}
         for resource_fn in glob2.glob(path):
-            LOG.info('Considering %r', resource_fn)
             if os.path.isdir(resource_fn):
                 continue
 
             if not resource_fn.endswith(('.yml', '.yaml')):
                 continue
 
-            if context and os.path.dirname(resource_fn).split(os.sep)[-1] not in [clean_path, context]:
-                LOG.info(
-                    'Skipping %s (not in %s or %s)',
-                    resource_fn, clean_path, context
-                )
+            all_resource_fn.append(resource_fn)
+
+            bfn = os.path.basename(resource_fn)
+            by_fn.setdefault(bfn, [])
+            by_fn[bfn].append(resource_fn)
+
+        if context:
+            for bfn in by_fn:
+                if len(by_fn[bfn]) > 1:
+                    best = None
+                    good = None
+
+                    for resource_fn in by_fn[bfn]:
+                        if context in resource_fn.split(os.sep):
+                            best = resource_fn
+                        elif resource_fn.split(os.sep)[-1] == clean_path:
+                            good = resource_fn
+
+                    if best:
+                        by_fn[bfn] = [best]
+                    elif good:
+                        by_fn[bfn] = [good]
+                    else:
+                        by_fn[bfn] = None
+
+        cache = {}
+        for bfn in by_fn:
+            if by_fn[bfn] is None:
                 continue
 
-            # TODO: this isn't quite right yet.. we want to ignore /kube/myfile.yaml when /kube/context/myfile.yaml exists
-            # which means we have to do this in two passes instead of one.
+            resource_fn = by_fn[bfn][0]
+            LOG.info('Considering %r', resource_fn)
 
             with open(resource_fn, 'r') as handle:
                 resource_content = handle.read()
