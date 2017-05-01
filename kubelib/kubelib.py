@@ -243,9 +243,16 @@ class KubeUtils(KubeConfig):
 
                     for resource_fn in by_fn[bfn]:
                         if context in resource_fn.split(os.sep):
+                            # in-context resources are 'best'
                             best = resource_fn
                         elif resource_fn.split(os.sep)[-1] == clean_path:
                             good = resource_fn
+                        else:
+                            LOG.info(
+                                '%s != %s -- ! skipping !',
+                                resource_fn.split(os.sep)[-1],
+                                clean_path
+                            )
 
                     if best:
                         by_fn[bfn] = [best]
@@ -735,7 +742,7 @@ class ActorBase(Kubernetes):
                     if secrets:
                         if Secret(self.config).exists(secret_name):
                             LOG.info(
-                                'Secret %r exists.  Replacing keys: %s',
+                                '2a) Secret %r exists.  Replacing keys: %s',
                                 secret_name, secrets.keys()
                             )
                             # read "old" secrets (to get hashes)
@@ -752,15 +759,17 @@ class ActorBase(Kubernetes):
                             # TODO: is this a valid comparison?
                             if old_secrets != new_secrets:
                                 LOG.info(
-                                    'old_secrets != new_secrets\n%s\n%s',
+                                    '2a) old_secrets != new_secrets\n%s\n%s',
                                     old_secrets,
                                     new_secrets
                                 )
                                 changes.add(secret_name)
+                            else:
+                                LOG.info('2a) old_secrets == new_secrets.')
 
                         else:
                             LOG.info(
-                                'Secret %r does not exist.  Creating keys: %s',
+                                '2a) Secret %r does not exist.  Creating keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
@@ -788,7 +797,7 @@ class ActorBase(Kubernetes):
                     if secrets:
                         if Secret(self.config).exists(secret_name):
                             LOG.info(
-                                'Secret %r exists.  Replacing keys: %s',
+                                '2b) Secret %r exists.  Replacing keys: %s',
                                 secret_name, secrets.keys()
                             )
 
@@ -802,13 +811,13 @@ class ActorBase(Kubernetes):
                             # TODO: is this a valid comparison?
                             if old_secrets != new_secrets:
                                 LOG.info(
-                                    'Detected change in secrets (%s)',
+                                    '2b) Detected change in secrets (%s)',
                                     secret_name
                                 )
                                 changes.add(secret_name)
                         else:
                             LOG.info(
-                                'Secret %r does not exist.  Creating keys: %s',
+                                '2b) Secret %r does not exist.  Creating keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
@@ -817,9 +826,9 @@ class ActorBase(Kubernetes):
                     myenv = list(env)
                     for v in container.get("env", []):
                         if v.name in envdict:
-                            LOG.info('Replacing env %s', v.name)
+                            LOG.info('2b) Replacing env %s', v.name)
                         else:
-                            LOG.info('Passing env %s through', v.name)
+                            LOG.info('2b) Passing env %s through', v.name)
                             myenv.append(v.toDict())
 
                     reimage(
@@ -846,13 +855,13 @@ class ActorBase(Kubernetes):
                 if secrets:
                     if Secret(self.config).exists(secret_name):
                         LOG.info(
-                            'Secret %r already exists.  Replacing keys: %s',
+                            '1) Secret %r already exists.  Replacing keys: %s',
                             secret_name, secrets.keys()
                         )
                         Secret(self.config).replace(secret_name, secrets)
                     else:
                         LOG.info(
-                            'Secret %r does not exist.  Creating keys: %s',
+                            '1) Secret %r does not exist.  Creating keys: %s',
                             secret_name, secrets.keys()
                         )
                         Secret(self.config).create(secret_name, secrets)
@@ -866,9 +875,9 @@ class ActorBase(Kubernetes):
                         # LOG.info('container: %s', container)
                         for v in container.get("env", []):
                             if v.name in envdict:
-                                LOG.info('Replacing env %s', v.name)
+                                LOG.info('1) Replacing env %s', v.name)
                             else:
-                                LOG.info('Passing env %s through', v.name)
+                                LOG.info('1) Passing env %s through', v.name)
                                 myenv.append(v.toDict())
 
                         xpath = "spec.template.spec.containers.%i.env" % index
