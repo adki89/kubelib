@@ -242,9 +242,7 @@ class KubeUtils(KubeConfig):
                     good = None
 
                     for resource_fn in by_fn[bfn]:
-                        clean_resource_dir = os.path.basename(
-                            resource_fn
-                        ).split(os.sep)[-1]
+                        clean_resource_dir = resource_fn.split(os.sep)[-2]
 
                         if context in resource_fn.split(os.sep):
                             # in-context resources are 'best'
