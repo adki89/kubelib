@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.2.43',
+    version='0.2.44',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',
@@ -29,7 +29,8 @@ setup(
         'glob2',
         'docopt',
         'requests',
-        'pyOpenSSL'
+        'pyOpenSSL',
+        'cffi',
     ],
     entry_points={
         'console_scripts': [
