@@ -1108,7 +1108,7 @@ class ConfigMap(ReplaceActor):
         shutil.rmtree(tdir)
 
 
-class Deployment(ReplaceActor):
+class Deployment(ApplyActor):
     """Deployment resource.
 
     A Deployment provides declarative updates for Pods and
