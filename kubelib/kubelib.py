@@ -689,7 +689,11 @@ class ActorBase(Kubernetes):
         for secret in pod_secrets:
             # LOG.info('pod_secrets[%r]: %r', secret, pod_secrets[secret])
 
-            my_secret = json.loads(pod_secrets[secret])
+            try:
+                my_secret = json.loads(pod_secrets[secret])
+            except TypeError:
+                my_secret = pod_secrets[secret]
+
             secrets[secret] = my_secret['value']
             if my_secret.get('type', '') == 'env':
                 val = {
