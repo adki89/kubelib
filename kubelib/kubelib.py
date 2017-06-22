@@ -598,7 +598,7 @@ class ActorBase(Kubernetes):
             '--save-config'
         )
 
-    def delete_path(self, path_or_fn):
+    def delete_path(self, path_or_fn, cascade=True):
         """Simple kubectl delete wrapper.
 
         :param path_or_fn: Path or filename of yaml resource descriptions
@@ -608,7 +608,8 @@ class ActorBase(Kubernetes):
             self.kubectl.delete(
                 '-f', path_or_fn,
                 '--namespace={}'.format(self.config.namespace),
-                '--context={}'.format(self.config.context)
+                '--context={}'.format(self.config.context),
+                '--cascade={}'.format('true' if cascade else 'false')
             )
         except sh.ErrorReturnCode:
             return False
@@ -1000,6 +1001,28 @@ class DeleteCreateActor(ActorBase):
         return changes
 
 
+class DeleteVerifyCreateActor(ActorBase):
+    """Delete the resource, make sure it is gone then re-create it."""
+
+    def apply(self, desc, filename, force=False):
+        """Delete then create."""
+        changes = self.apply_secrets(desc, filename)
+
+        if self.exists(desc.metadata.name) or force:
+            self.delete_path(filename)
+
+            if self.exists(desc.metadata.name):
+                LOG.error(
+                    'Delete of %s failed.  Trying with --cascade=false',
+                    desc.metadata.name
+                )
+                self.delete_path(filename, cascade=False)
+
+        self.create_path(filename)
+
+        return changes
+
+
 class ReplaceActor(ActorBase):
     """Do a *kubectl replace* on this object."""
 
@@ -1173,7 +1196,7 @@ class Ingress(ReplaceActor):
     secrets = True
 
 
-class Job(DeleteCreateActor):
+class Job(DeleteVerifyCreateActor):
     """Job resource."""
 
     always_force = True
