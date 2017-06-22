@@ -1,0 +1,164 @@
+Kubelib
+*******
+
+kubelib both wraps kubectl and makes direct kubernetes api calls.  It is intended to simplify scripting jenkins tasks.  It is purely client side; nothing needs to be installed on the node or pods.
+
+This module makes use of the "bunch" python module for object return values.
+
+https://github.com/dsc/bunch
+
+tldr: you can use them as dictionaries (ala pod['metadata']['name']) or with attributes (ala pod.metadata.name).  I think this makes code with deeply nested dictionaries easier to read.
+
+
+.. automodule:: kubelib
+
+
+Kubectl
+-------
+
+    .. autoclass:: kubelib.Kubectl
+        :member-order: groupwise
+
+KubeConfig
+----------
+
+    .. autoclass:: kubelib.KubeConfig
+        :member-order: groupwise
+
+KubeUtils
+---------
+
+    .. autoclass:: kubelib.KubeUtils
+        :member-order: groupwise
+
+Kubernetes
+----------
+
+    .. autoclass:: kubelib.Kubernetes
+        :member-order: groupwise
+
+Resources
+---------
+
+ConfigMap
+^^^^^^^^^
+
+    .. autoclass:: kubelib.ConfigMap
+        :member-order: groupwise
+
+DaemonSet
+^^^^^^^^^
+
+    .. autoclass:: kubelib.DaemonSet
+        :member-order: groupwise
+
+Deployment
+^^^^^^^^^^
+
+    .. autoclass:: kubelib.Deployment
+        :member-order: groupwise
+
+HorizontalPodAutoscaler
+^^^^^^^^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.HorizontalPodAutoscaler
+        :member-order: groupwise
+
+Ingress
+^^^^^^^
+
+    .. autoclass:: kubelib.Ingress
+        :member-order: groupwise
+
+Job
+^^^
+
+    .. autoclass:: kubelib.Job
+        :member-order: groupwise
+
+Namespace
+^^^^^^^^^
+
+    .. autoclass:: kubelib.Namespace
+        :member-order: groupwise
+
+Node
+^^^^
+
+    .. autoclass:: kubelib.Node
+        :member-order: groupwise
+
+PersistentVolume
+^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.PersistentVolume
+        :member-order: groupwise
+
+PersistentVolumeClaim
+^^^^^^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.PersistentVolumeClaim
+        :member-order: groupwise
+
+PetSet
+^^^^^^
+
+    .. autoclass:: kubelib.PetSet
+        :member-order: groupwise
+
+Pod
+^^^
+
+    .. autoclass:: kubelib.Pod
+        :member-order: groupwise
+
+ReplicationController
+^^^^^^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.ReplicationController
+        :member-order: groupwise
+
+Secret
+^^^^^^
+
+    .. autoclass:: kubelib.Secret
+        :member-order: groupwise
+
+Service
+^^^^^^^
+
+    .. autoclass:: kubelib.Service
+        :member-order: groupwise
+
+Role Based Access Control (RBAC)
+--------------------------------
+
+ClusterRole
+^^^^^^^^^^^
+
+    .. autoclass:: kubelib.ClusterRole
+        :member-order: groupwise
+
+ClusterRoleBinding
+^^^^^^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.ClusterRoleBinding
+        :member-order: groupwise
+
+NetworkPolicy
+^^^^^^^^^^^^^
+
+    .. autoclass:: kubelib.NetworkPolicy
+        :member-order: groupwise
+
+Role
+^^^^
+
+    .. autoclass:: kubelib.Role
+        :member-order: groupwise
+
+RoleBinding
+^^^^^^^^^^^
+
+    .. autoclass:: kubelib.RoleBinding
+        :member-order: groupwise
