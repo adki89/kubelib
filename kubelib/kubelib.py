@@ -273,6 +273,10 @@ class KubeUtils(KubeConfig):
 
             with open(resource_fn, 'r') as handle:
                 resource_content = handle.read()
+                if resource_content == "":
+                    LOG.info('Skipping empty file %s', resource_fn)
+                    continue
+
                 resource_desc = munch.Munch.fromYAML(
                     resource_content
                 )
