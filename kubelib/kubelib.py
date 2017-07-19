@@ -285,6 +285,10 @@ class KubeUtils(KubeConfig):
                 LOG.error('Invalid resource file %s', resource_fn)
                 continue
 
+            if not hasattr(resource_desc, "kind"):
+                LOG.error('Resource file %s has no "kind"', resource_fn)
+                continue
+
             if resource_desc.kind not in cache:
                 resource_class = resource_by_kind(resource_desc.kind)
                 resource = resource_class(self)
