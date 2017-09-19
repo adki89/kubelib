@@ -291,7 +291,13 @@ class KubeUtils(KubeConfig):
 
             if resource_desc.kind not in cache:
                 resource_class = resource_by_kind(resource_desc.kind)
-                resource = resource_class(self)
+                if resource_class:
+                    resource = resource_class(self)
+                else:
+                    LOG.error(
+                        "!! Kubelib doens't know how to handle %s !!",
+                        resource_desc.kind
+                    )
                 cache[resource_desc.kind] = resource
 
             force = False
@@ -1604,6 +1610,12 @@ class ClusterRoleBinding(CreateIfMissingActor):
     list_uri = "/{resource_type}"
 
 
+class Endpoint(CreateIfMissingActor):
+    """Endpoint resource."""
+
+    url_type = "endpoints"
+
+
 class Service(ReadMergeApplyActor):
     """Service resource.
 
@@ -1803,29 +1815,28 @@ def reimage(filename, xpath, newvalue, save_to=None):
     return yml
 
 RESOURCE_CLASSES = (
-    # resources
+    ClusterRole,
+    ClusterRoleBinding,
     ConfigMap,
     DaemonSet,
     Deployment,
+    Endpoint,
     HorizontalPodAutoscaler,
     Ingress,
     Job,
     LimitRange,
     Namespace,
+    NetworkPolicy,
     Node,
     PersistentVolume,
     PersistentVolumeClaim,
     PetSet,
     Pod,
     ReplicationController,
-    Secret,
-    Service,
-    # RBAC
-    ClusterRole,
-    ClusterRoleBinding,
-    NetworkPolicy,
     Role,
     RoleBinding,
+    Secret,
+    Service,
 )
 
 TYPE_TO_KIND = {}
