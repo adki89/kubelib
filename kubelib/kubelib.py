@@ -641,6 +641,10 @@ class ActorBase(Kubernetes):
         if self.cache is None or force_reload:
             fresh = True
             self.cache = {}
+            LOG.info(
+                'Fetching new object list for %s (%s)',
+                name, force_reload
+            )
             res_list = self.get_list()
             for res in res_list:
                 self.cache[res.metadata.name] = res
@@ -1121,7 +1125,8 @@ class ConfigMap(ReplaceActor):
         success = False
         start = time.time()
 
-        while success is False and time.time() < start + max_timeout:
+        now = time.time()
+        while success is False and now < start + max_timeout:
             try:
                 self.kubectl.create.configmap(
                     configkey,
@@ -1131,7 +1136,10 @@ class ConfigMap(ReplaceActor):
                 )
                 success = True
             except sh.ErrorReturnCode_1 as err:
-                LOG.error("Error %s creating configmap", err)
+                LOG.error(
+                    "Error creating configmap %s (%s remaining)",
+                    err, (start + max_timeout) - now
+                )
                 time.sleep(
                     min(
                         retry_delay,
@@ -1139,6 +1147,7 @@ class ConfigMap(ReplaceActor):
                     )
                 )
                 retry_delay = retry_delay * 2
+                now = time.time()
 
         shutil.rmtree(tdir)
 
