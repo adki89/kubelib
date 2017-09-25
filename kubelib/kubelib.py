@@ -199,7 +199,9 @@ class KubeUtils(KubeConfig):
 
         return containers
 
-    def apply_path(self, path, recursive=False, replace_set=None, context=None):
+    def apply_path(
+        self, path, recursive=False, replace_set=None, context=None
+    ):
         """Apply all the yaml files in `path` to the current context/namespace.
 
         Exactly what apply means depends on the resource type.
@@ -292,7 +294,15 @@ class KubeUtils(KubeConfig):
             if resource_desc.kind not in cache:
                 resource_class = resource_by_kind(resource_desc.kind)
                 if resource_class:
-                    resource = resource_class(self)
+                    try:
+                        resource = resource_class(self)
+                    except TypeError:
+                        LOG.error(
+                            'Unexpected error initializing %s for kind %s',
+                            resource_class,
+                            resource_desc.kind
+                        )
+                        raise
                 else:
                     LOG.error(
                         "!! Kubelib doens't know how to handle %s !!",
