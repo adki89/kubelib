@@ -760,7 +760,7 @@ class ActorBase(Kubernetes):
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
                 # container based secrets
-                if desc.kind in ["Ingress", ]:
+                if desc.kind in ["Ingress", "Endpoint"]:
                     secret_name = desc.metadata.name
 
                     default_secrets = self.get_secrets("_default_")
