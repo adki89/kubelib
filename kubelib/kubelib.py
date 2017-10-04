@@ -332,7 +332,9 @@ class KubeUtils(KubeConfig):
             # there are configmap changes so we want to replace
             # the pod instead of just applying it.
             cache[resource_desc.kind].apply(
-                resource_desc, resource_fn, force=force or cache[resource_desc.kind].always_force
+                resource_desc,
+                resource_fn,
+                force=force or cache[resource_desc.kind].always_force
             )
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
@@ -689,15 +691,15 @@ class ActorBase(Kubernetes):
             container=container_name
         )
         LOG.info('Reading secrets for %r', secret_url)
-        container_secrets = {}
+        cont_secrets = {}
         try:
-            container_secrets = self.config.vault_client.read(secret_url)['data']
+            cont_secrets = self.config.vault_client.read(secret_url)['data']
         except Exception as err:
             LOG.error(err)
             LOG.info('No secrets found for %s.  Skipping...', container_name)
 
-        LOG.info('Found %s secrets', len(container_secrets))
-        return container_secrets
+        LOG.info('Found %s secrets', len(cont_secrets))
+        return cont_secrets
 
     def simple_name(self, desc):
         """Override-able func to get the name of a resource."""
@@ -760,7 +762,7 @@ class ActorBase(Kubernetes):
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
                 # container based secrets
-                if desc.kind in ["Ingress", "Endpoint"]:
+                if desc.kind in ["Ingress", "Endpoints"]:
                     secret_name = desc.metadata.name
 
                     default_secrets = self.get_secrets("_default_")
@@ -804,7 +806,7 @@ class ActorBase(Kubernetes):
 
                         else:
                             LOG.info(
-                                '2a) Secret %r does not exist.  Creating keys: %s',
+                                '2a) Secret %r missing. Creating keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
@@ -818,12 +820,12 @@ class ActorBase(Kubernetes):
                     default_secrets = self.get_secrets("_default_")
                     override_secrets = self.get_secrets(secret_name)
 
-                    container_secrets = default_secrets
+                    cont_secrets = default_secrets
                     for secret_key in override_secrets:
-                        container_secrets[secret_key] = override_secrets[secret_key]
+                        cont_secrets[secret_key] = override_secrets[secret_key]
 
                     env, envdict, secrets = self.build_env_secrets(
-                        container_secrets, secret_name
+                        cont_secrets, secret_name
                     )
                     # old env in pod.get("env", [])
                     # new env in myenv
@@ -852,7 +854,7 @@ class ActorBase(Kubernetes):
                                 changes.add(secret_name)
                         else:
                             LOG.info(
-                                '2b) Secret %r does not exist.  Creating keys: %s',
+                                '2b) Secret %r missing. Creating keys: %s',
                                 secret_name, secrets.keys()
                             )
                             Secret(self.config).create(secret_name, secrets)
@@ -1620,7 +1622,7 @@ class ClusterRoleBinding(CreateIfMissingActor):
     list_uri = "/{resource_type}"
 
 
-class Endpoint(CreateIfMissingActor):
+class Endpoints(CreateIfMissingActor):
     """Endpoint resource."""
 
     url_type = "endpoints"
@@ -1661,7 +1663,9 @@ class Secret(ReplaceActor):
         for key in dict_of_secrets:
             # base64 wants bytes, we may have str, int or even floats.  _but_
             # json won't encode bytes, so we have to decode to string.
-            encoded_dict[key] = base64.b64encode("{}".format(dict_of_secrets[key]).encode()).decode('UTF-8')
+            encoded_dict[key] = base64.b64encode(
+                "{}".format(dict_of_secrets[key]).encode()
+            ).decode('UTF-8')
 
         response = self._post(
             "/namespaces/{namespace}/secrets".format(
@@ -1830,7 +1834,7 @@ RESOURCE_CLASSES = (
     ConfigMap,
     DaemonSet,
     Deployment,
-    Endpoint,
+    Endpoints,
     HorizontalPodAutoscaler,
     Ingress,
     Job,
