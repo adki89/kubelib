@@ -211,6 +211,7 @@ class KubeUtils(KubeConfig):
         :param reload_set: Set of containers that should be reloaded
         :param context: optional prefer yaml in this directory
         """
+        LOG.info('Applying path %s', path)
         path.rstrip('/')
         clean_path = os.path.basename(path).split(os.sep)[-1]
 
@@ -243,13 +244,22 @@ class KubeUtils(KubeConfig):
                     best = None
                     good = None
 
+                    LOG.debug('Choosing best from %s', by_fn[bfn])
                     for resource_fn in by_fn[bfn]:
                         clean_resource_dir = resource_fn.split(os.sep)[-2]
 
                         if context in resource_fn.split(os.sep):
                             # in-context resources are 'best'
+                            LOG.info(
+                                'Excellent.  %s is in %s',
+                                resource_fn, context
+                            )
                             best = resource_fn
                         elif clean_resource_dir == clean_path:
+                            LOG.debug(
+                                'accepting resource %s found in %s',
+                                bfn, clean_path
+                            )
                             good = resource_fn
                         else:
                             LOG.info(
@@ -259,11 +269,25 @@ class KubeUtils(KubeConfig):
                             )
 
                     if best:
+                        LOG.debug('BEST found!  %s', best)
                         by_fn[bfn] = [best]
                     elif good:
+                        LOG.debug('GOOD found!  %s, good')
                         by_fn[bfn] = [good]
                     else:
+                        LOG.debug('Failing on %s', bfn)
                         by_fn[bfn] = None
+                else:
+                    resource_fn = by_fn[bfn][0]
+                    clean_resource_dir = resource_fn.split(os.sep)[-2]
+                    if clean_resource_dir != clean_path:
+                        LOG.debug('Not in %s', clean_path)
+                        if context not in resource_fn.split(os.sep):
+                            LOG.info(
+                                'Rejecting %s.  %s not in %s',
+                                bfn, context, resource_fn.split(os.sep)
+                            )
+                            by_fn[bfn] = None
 
         cache = {}
         for bfn in by_fn:
