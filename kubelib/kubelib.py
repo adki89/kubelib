@@ -1224,6 +1224,22 @@ class DaemonSet(ReplaceActor):
     api_base = "/apis/extensions/v1beta1"
 
 
+class CronJob(ReplaceActor):
+    """CronJob resource.
+
+    A Cron Job manages time based Jobs, namely:
+
+    * Once at a specified point in time
+    * Repeatedly at a specified point in time
+
+    One CronJob object is like one line of a crontab (cron table) file. It runs
+    a job periodically on a given schedule, written in Cron format.
+    """
+
+    url_type = "cronjob"
+    api_base = "/apis/batch/v1beta1"
+
+
 class HorizontalPodAutoscaler(CreateIfMissingActor):
     """HorizontalPodAutoscaler resource.
 
@@ -1856,6 +1872,7 @@ RESOURCE_CLASSES = (
     ClusterRole,
     ClusterRoleBinding,
     ConfigMap,
+    CronJob,
     DaemonSet,
     Deployment,
     Endpoints,
