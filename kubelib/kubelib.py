@@ -144,7 +144,9 @@ class KubeConfig(object):
 
         self.req = None
 
+        self.secrets = False
         self.vault_client = None
+        self.secrets_client = None
 
     def set_context(self, context=None):
         """Set the current context.
@@ -182,7 +184,28 @@ class KubeConfig(object):
 
         :param vault_client: hvac client
         """
+        self.secrets = True
         self.vault_client = vault_client
+
+    def set_secret_backend(self, secrets_client):
+        """Generic secrets client interface.
+
+        The secrets client must support:
+          .secrets_list(namespace, context)  returns list of secret objects
+          .secrets_delete(namespace, context, container)  deletes secrets
+          .secrets_create(namespace, context, secrets)  creates secrets
+
+        Where secret objects have attributes:
+            .container
+            .name
+            .key
+            .value
+            .type ('manual' or 'env')
+
+        :param secrets_client: secrets client
+        """
+        self.secrets = True
+        self.secrets_client = secrets_client
 
 
 class KubeUtils(KubeConfig):
@@ -704,25 +727,51 @@ class ActorBase(Kubernetes):
             return False
 
     def get_secrets(self, container_name):
-        """Retrieve secrets from vault for the named pod."""
-        if self.config.vault_client is None:
+        """Retrieve secrets from vault for the named pod.
+
+        Returns a dictionary with key=key of either json blobs or
+        dicts with
+         {'key': , 'type': , 'value': }
+        """
+        if not self.config.secrets:
             LOG.info('No Vault Client provided, skipping...')
             return
 
-        secret_url = "/secret/{context}/{namespace}/{container}".format(
-            context=self.config.context,
-            namespace=self.config.namespace,
-            container=container_name
-        )
-        LOG.info('Reading secrets for %r', secret_url)
-        cont_secrets = {}
-        try:
-            cont_secrets = self.config.vault_client.read(secret_url)['data']
-        except Exception as err:
-            LOG.error(err)
-            LOG.info('No secrets found for %s.  Skipping...', container_name)
+        if self.config.vault_client:
+            secret_url = "/secret/{context}/{namespace}/{container}".format(
+                context=self.config.context,
+                namespace=self.config.namespace,
+                container=container_name
+            )
+            LOG.info('Reading secrets for %r', secret_url)
+            cont_secrets = {}
+            try:
+                cont_secrets = self.config.vault_client.read(
+                    secret_url
+                )['data']
+            except Exception as err:
+                LOG.error(err)
+                LOG.info(
+                    'No secrets found for %s.  Skipping...',
+                    container_name
+                )
 
-        LOG.info('Found %s secrets', len(cont_secrets))
+            LOG.info('Found %s secrets', len(cont_secrets))
+
+        elif self.config.secrets_client:
+            all_secrets = self.config.secrets_client.secrets_list(
+                namespace=self.config.namespace,
+                context=self.config.context
+            )
+            cont_secrets = {}
+            for secret in all_secrets:
+                if secret.container == container_name:
+                    cont_secrets[secret.key] = {
+                        'key': secret.key,
+                        'type': secret.type,
+                        'value': secret.value
+                    }
+
         return cont_secrets
 
     def simple_name(self, desc):
@@ -782,7 +831,7 @@ class ActorBase(Kubernetes):
         files into the container.
         """
         changes = set()
-        if self.secrets and self.config.vault_client:
+        if self.secrets and self.config.secrets:
 
             if os.environ.get('KUBELIB_VERSION', '1') == '2':
                 # container based secrets
