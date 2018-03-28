@@ -759,6 +759,7 @@ class ActorBase(Kubernetes):
             LOG.info('Found %s secrets', len(cont_secrets))
 
         elif self.config.secrets_client:
+            LOG.info('Gathering secrets from secrets_client')
             all_secrets = self.config.secrets_client.secrets_list(
                 namespace=self.config.namespace,
                 context=self.config.context
@@ -772,6 +773,7 @@ class ActorBase(Kubernetes):
                         'value': secret.value
                     }
 
+        LOG.info('get_secrets found %s secrets', len(cont_secrets))
         return cont_secrets
 
     def simple_name(self, desc):
