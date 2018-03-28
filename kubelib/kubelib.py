@@ -772,6 +772,8 @@ class ActorBase(Kubernetes):
                         'type': secret.type,
                         'value': secret.value
                     }
+        else:
+            LOG.error('!! Unknown secrets backend !!')
 
         LOG.info('get_secrets found %s secrets', len(cont_secrets))
         return cont_secrets
@@ -835,7 +837,7 @@ class ActorBase(Kubernetes):
         changes = set()
         if self.secrets and self.config.secrets:
 
-            if os.environ.get('KUBELIB_VERSION', '1') == '2':
+            if int(os.environ.get('KUBELIB_VERSION', '1')) >= 2:
                 # container based secrets
                 if desc.kind in ["Ingress", "Endpoints"]:
                     secret_name = desc.metadata.name
