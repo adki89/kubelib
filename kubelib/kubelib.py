@@ -759,7 +759,12 @@ class ActorBase(Kubernetes):
             LOG.info('Found %s secrets', len(cont_secrets))
 
         elif self.config.secrets_client:
-            LOG.info('Gathering secrets from secrets_client')
+            LOG.info(
+                'Gathering secrets for %s/%s from secrets_client',
+                self.config.namespace,
+                self.config.context
+            )
+
             all_secrets = self.config.secrets_client.secrets_list(
                 namespace=self.config.namespace,
                 context=self.config.context
@@ -772,6 +777,12 @@ class ActorBase(Kubernetes):
                         'type': secret.type,
                         'value': secret.value
                     }
+                else:
+                    LOG.info(
+                        'Skipping %s (!= %s)',
+                        secret.container,
+                        container_name
+                    )
         else:
             LOG.error('!! Unknown secrets backend !!')
 
@@ -802,7 +813,7 @@ class ActorBase(Kubernetes):
             except TypeError:
                 my_secret = pod_secrets[secret]
 
-            secrets[secret] = my_secret['value']
+            secrets[secret] = my_secret['value'].encode('UTF-8')
             if my_secret.get('type', '') == 'env':
                 val = {
                     "name": my_secret['key'],
@@ -838,6 +849,7 @@ class ActorBase(Kubernetes):
         if self.secrets and self.config.secrets:
 
             if int(os.environ.get('KUBELIB_VERSION', '1')) >= 2:
+                LOG.info('Applying new-style Container secrets')
                 # container based secrets
                 if desc.kind in ["Ingress", "Endpoints"]:
                     secret_name = desc.metadata.name
@@ -952,6 +964,7 @@ class ActorBase(Kubernetes):
                     )
 
             else:
+                LOG.info('Applying old-style Pod secrets')
                 # (obsolete) pod based secrets
                 secret_name = desc.metadata.name + "-vault"
 
@@ -1000,6 +1013,8 @@ class ActorBase(Kubernetes):
                             xpath=xpath,
                             newvalue=myenv
                         )
+        else:
+            LOG.info('No secrets backend is defined')
 
         return changes
 
@@ -1785,8 +1800,7 @@ class Secret(ReplaceActor):
         """Replace an existing secret(s)."""
         encoded_dict = {}
         for key in dict_of_secrets:
-            encoded_dict[key] = base64.b64encode(str(dict_of_secrets[key]))
-
+            encoded_dict[key] = base64.b64encode(dict_of_secrets[key]).decode('ascii')
         response = self._put(
             "/namespaces/{namespace}/secrets/{name}".format(
                 namespace=self.config.namespace,
