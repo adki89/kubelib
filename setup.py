@@ -14,7 +14,7 @@ with open('LICENSE') as f:
 
 setup(
     name='kubelib',
-    version='0.3.8',
+    version='0.3.9',
     description='Utility wrapper around Kubectl',
     long_description=readme,
     author='Jason Kane',

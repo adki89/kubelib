@@ -1339,6 +1339,17 @@ class Ingress(ReplaceActor):
     secrets = True
 
 
+class VirtualService(ApplyActor):
+    """VirtualService resource.
+
+    An VirtualService is a collection of rules that allow inbound
+    connections to reach the cluster services.
+    """
+
+    url_type = "virtualservice"
+    api_base = ""
+    secrets = False
+
 class Job(DeleteVerifyCreateActor):
     """Job resource."""
 
@@ -1959,6 +1970,7 @@ RESOURCE_CLASSES = (
     RoleBinding,
     Secret,
     Service,
+    VirtualService,
 )
 
 TYPE_TO_KIND = {}
@@ -2052,6 +2064,7 @@ class Kubectl(KubeUtils):
                 'sa': '',
                 'services': 'Service',
                 'svc': 'Service',
+                'virtualservice': 'VirtualService',
             }
             if resource_desc.kind != friendly_to_kind[friendly_resource_type]:
                 continue
