@@ -223,7 +223,7 @@ class KubeUtils(KubeConfig):
         return containers
 
     def apply_path(
-        self, path, recursive=False, replace_set=None, context=None
+        self, path, recursive=False, replace_set=None, context=None, stable_replicas=False
     ):
         """Apply all the yaml files in `path` to the current context/namespace.
 
@@ -381,7 +381,8 @@ class KubeUtils(KubeConfig):
             cache[resource_desc.kind].apply(
                 resource_desc,
                 resource_fn,
-                force=force or cache[resource_desc.kind].always_force
+                force=force or cache[resource_desc.kind].always_force,
+                stable_replicas=stable_replicas
             )
 
     def copy_to_pod(self, source_fn, pod, destination_fn):
@@ -688,7 +689,7 @@ class ActorBase(Kubernetes):
             return False
         return True
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """NOOP Placeholder to be overridden by sub-classes.
 
         :param desc: Munch resource object
@@ -1018,6 +1019,39 @@ class ActorBase(Kubernetes):
 
         return changes
 
+    def stabilize_replicas(self, local, remote=None):
+        """Ensure we are not changing the number of replicas."""
+        change = False
+        if local.kind in ['Deployment', 'ReplicaSet', 'ReplicationController', 'Job']:
+            if remote is None:
+                if self.exists(local.metadata.name):
+                    try:
+                        remote = self.get(local.metadata.name)
+                    except Exception:
+                        LOG.warning(
+                            'Unable to read %s %s',
+                            local.kind,
+                            local.metadata.name
+                        )
+                        return local, False
+                else:
+                    LOG.warning(
+                        '%s %s does not exist',
+                        local.kind,
+                        local.metadata.name
+                    )
+                    return local, False
+
+            if local.spec.replicas != remote.spec.replicas:
+                LOG.warning(
+                    'Remote has %s replicas but VC has %s.',
+                    remote.spec.replicas, local.spec.replicas
+                )
+                local.spec.replicas = remote.spec.replicas
+                change = True
+
+        return local, change
+
 
 class ReadMergeApplyActor(ActorBase):
     """
@@ -1026,7 +1060,7 @@ class ReadMergeApplyActor(ActorBase):
     write it, then apply it.
     """
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Read, Merge then Apply."""
         changes = self.apply_secrets(desc, filename)
 
@@ -1042,6 +1076,9 @@ class ReadMergeApplyActor(ActorBase):
                     err,
                     filename
                 )
+
+            if stable_replicas:
+                desc, _ = self.stabilize_replicas(desc, remote)
 
             # merge our file on top of it
             remote.update(desc)
@@ -1083,10 +1120,21 @@ class ReadMergeApplyActor(ActorBase):
 class ApplyActor(ActorBase):
     """Do a kubectl apply on the resource."""
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Simple apply with secrets support."""
         changes = self.apply_secrets(desc, filename)
         action = "unknown"
+
+        if stable_replicas:
+            desc, change = self.stabilize_replicas(desc)
+
+            if change:
+                reimage(
+                    filename=filename,
+                    xpath="spec.replicas",
+                    newvalue=desc.replicas
+                )
+
         try:
             if force or len(changes):
                 LOG.info(
@@ -1112,9 +1160,18 @@ class ApplyActor(ActorBase):
 class DeleteCreateActor(ActorBase):
     """Delete the resource and re-create it."""
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Delete then create."""
         changes = self.apply_secrets(desc, filename)
+
+        if stable_replicas:
+            desc, change = self.stabilize_replicas(desc)
+            if change:
+                reimage(
+                    filename=filename,
+                    xpath="spec.replicas",
+                    newvalue=desc.replicas
+                )
 
         if self.exists(desc.metadata.name) or force:
             self.delete_path(filename)
@@ -1126,7 +1183,7 @@ class DeleteCreateActor(ActorBase):
 class DeleteVerifyCreateActor(ActorBase):
     """Delete the resource, make sure it is gone then re-create it."""
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Delete then create."""
         changes = self.apply_secrets(desc, filename)
 
@@ -1140,6 +1197,15 @@ class DeleteVerifyCreateActor(ActorBase):
                 )
                 self.delete_path(filename, cascade=False)
 
+        if stable_replicas:
+            desc, change = self.stabilize_replicas(desc)
+            if change:
+                reimage(
+                    filename=filename,
+                    xpath="spec.replicas",
+                    newvalue=desc.replicas
+                )
+
         self.create_path(filename)
 
         return changes
@@ -1148,9 +1214,18 @@ class DeleteVerifyCreateActor(ActorBase):
 class ReplaceActor(ActorBase):
     """Do a *kubectl replace* on this object."""
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Replace if it exists, Create if it doesn't."""
         changes = self.apply_secrets(desc, filename)
+
+        if stable_replicas:
+            desc, change = self.stabilize_replicas(desc)
+            if change:
+                reimage(
+                    filename=filename,
+                    xpath="spec.replicas",
+                    newvalue=desc.replicas
+                )
 
         if self.exists(desc.metadata.name):
             if changes:
@@ -1173,9 +1248,11 @@ class ReplaceActor(ActorBase):
 class CreateIfMissingActor(ActorBase):
     """Create only if the resource is missing."""
 
-    def apply(self, desc, filename, force=False):
+    def apply(self, desc, filename, force=False, stable_replicas=False):
         """Create only.  You almost never want this."""
         changes = self.apply_secrets(desc, filename)
+
+        # stable_replicas doesn't make sense here
 
         if not self.exists(desc.metadata.name):
             self.create_path(filename)
@@ -1342,13 +1419,14 @@ class Ingress(ReplaceActor):
 class VirtualService(ApplyActor):
     """VirtualService resource.
 
-    An VirtualService is a collection of rules that allow inbound
+    (Istio) An VirtualService is a collection of rules that allow inbound
     connections to reach the cluster services.
     """
 
     url_type = "virtualservice"
     api_base = ""
     secrets = False
+
 
 class Job(DeleteVerifyCreateActor):
     """Job resource."""
